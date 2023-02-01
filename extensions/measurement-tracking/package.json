@@ -35,7 +35,7 @@
     "@cornerstonejs/core": "^0.27.1",
     "@cornerstonejs/tools": "^0.36.3",
     "@ohif/extension-cornerstone-dicom-sr": "^3.0.0",
-    "dcmjs": "^0.28.3",
+    "dcmjs": "^0.29.4",
     "prop-types": "^15.6.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
