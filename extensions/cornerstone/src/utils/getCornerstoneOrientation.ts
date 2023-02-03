@@ -17,6 +17,7 @@ export default function getCornerstoneOrientation(
       case CORONAL:
         return Enums.OrientationAxis.CORONAL;
       default:
+      log.warn('Choosing acquisition plane orientation');
         return Enums.OrientationAxis.ACQUISITION;
     }
   }
