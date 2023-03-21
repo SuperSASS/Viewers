@@ -1,5 +1,8 @@
 {
-  "editor.rulers": [80, 120],
+  "editor.rulers": [
+    80,
+    120
+  ],
   // ===
   // Spacing
   // ===
@@ -27,10 +30,21 @@
     }
   ],
   "jest.autoRun": "off",
-  "prettier.disableLanguages": ["html"],
+  "prettier.disableLanguages": [
+    "html"
+  ],
   "prettier.endOfLine": "lf",
   "workbench.colorCustomizations": {},
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
+  },
+  "files.exclude": {
+    ".circleci": true,
+    ".docker": true,
+    ".github": true,
+    ".netlify": true,
+    ".scripts": true,
+    "**/.webpack": true,
+    "**/node_modules": true
   }
 }
