@@ -31,6 +31,10 @@
     {
       "packageName": "@ohif/extension-cornerstone-dicom-seg",
       "version": "3.0.0"
+    },
+    {
+      "packageName": "@ohif-test/extension-clock",
+      "version": "3.2.0"
     }
   ],
   "modes": [
@@ -41,6 +45,10 @@
     {
       "packageName": "@ohif/mode-tmtv",
       "version": "3.0.0"
+    },
+    {
+      "packageName": "@ohif-test/mode-clock",
+      "version": "3.2.0"
     }
   ],
   "modesFactory": [],
