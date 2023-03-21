@@ -47,8 +47,6 @@
   ],
   "dependencies": {
     "@babel/runtime": "7.16.3",
-    "@ohif-test/extension-clock": "^3.0.0",
-    "@ohif-test/mode-clock": "^3.2.0",
     "@ohif/core": "^3.0.0",
     "@ohif/extension-cornerstone": "^3.0.0",
     "@ohif/extension-cornerstone-dicom-seg": "^3.0.0",
