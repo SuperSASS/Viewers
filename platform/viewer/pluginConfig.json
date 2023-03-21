@@ -45,14 +45,6 @@
     {
       "packageName": "@ohif/mode-tmtv",
       "version": "3.0.0"
-    },
-    {
-      "packageName": "@ohif-test/mode-clock",
-      "version": "3.2.0"
-    },
-    {
-      "packageName": "test-mode",
-      "version": "0.0.1"
     }
   ],
   "modesFactory": [],
