@@ -12,6 +12,10 @@ const cornerstone = {
   viewport: '@ohif/extension-cornerstone.viewportModule.cornerstone',
 };
 
+const test = {
+  rightPanel: 'test-extension.panelModule.panelTest'
+}
+
 /**
  * Just two dependencies to be able to render a viewport with panels in order
  * to make sure that the mode is working.
@@ -74,7 +78,7 @@ function modeFactory({ modeConfiguration }) {
             id: ohif.layout,
             props: {
               leftPanels: [ohif.leftPanel],
-              rightPanels: [ohif.rightPanel],
+              rightPanels: [ohif.rightPanel, test.rightPanel],
               viewports: [
                 {
                   namespace: cornerstone.viewport,

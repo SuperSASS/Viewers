@@ -40,7 +40,7 @@
   },
   "files.exclude": {
     ".circleci": true,
-    ".docker": true,
+    // ".docker": true,
     ".github": true,
     ".netlify": true,
     ".scripts": true,

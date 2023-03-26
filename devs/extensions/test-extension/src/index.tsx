@@ -1,4 +1,9 @@
+
 import { id } from './id';
+import React from 'react';
+
+import PanelTest from './panels/PanelTest'
+import getCustomizationModule from './getCustomizationModule';
 
 /**
  * You can remove any of the following modules if you don't need them.
@@ -31,7 +36,27 @@ export default {
     servicesManager,
     commandsManager,
     extensionManager,
-  }) => { },
+  }) => {
+    const warppedPanelTest = () => {
+      return (
+        <PanelTest
+          commandsManager={commandsManager}
+          servicesManager={servicesManager}
+          extensionManager={extensionManager}
+        />
+      );
+    };
+
+    return [
+      {
+        name: 'panelTest',
+        iconName: 'tab-segmentation',
+        iconLabel: 'Segmentation',
+        label: '分割',
+        component: warppedPanelTest,
+      }
+    ]
+  },
   /**
    * ViewportModule should provide a list of viewports that will be available in OHIF
    * for Modes to consume and use in the viewports. Each viewport is defined by
@@ -42,13 +67,7 @@ export default {
     servicesManager,
     commandsManager,
     extensionManager,
-  }) => {
-    const testPanel = () => {
-      return (
-
-      )
-    }
-  },
+  }) => { },
   /**
    * ToolbarModule should provide a list of tool buttons that will be available in OHIF
    * for Modes to consume and use in the toolbar. Each tool button is defined by
@@ -129,4 +148,6 @@ export default {
     commandsManager,
     extensionManager,
   }) => { },
+
+  getCustomizationModule,
 };

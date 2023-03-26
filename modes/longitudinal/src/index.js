@@ -142,10 +142,16 @@ function modeFactory() {
       series: [],
     },
 
-    isValidMode: function({ modalities }) {
+    // 解释：检验该Study下该Mode是否可用
+    /// 原理：用modalities_list得到分割后的所有DICOM检查类型，
+    /// 通过筛选器filter，如果元素不在NON_IMAGE_MODALITIES中（indexOf === -1)，则保留
+    /// 然后判断剩余元素个数，如果不为0，则至少有可用文件可以展示（用!!转换为bool）
+    //
+    /// 注意：由于设计缺陷，每次点击一个Study后，对该Study会对所有Mode进行可用判断
+    isValidMode: function ({ modalities }) {
       const modalities_list = modalities.split('\\');
 
-      // Exclude non-image modalities
+      // 排除纯粹的非影像Image类型
       return !!modalities_list.filter(
         modality => NON_IMAGE_MODALITIES.indexOf(modality) === -1
       ).length;
