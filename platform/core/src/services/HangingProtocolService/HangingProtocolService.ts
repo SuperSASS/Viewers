@@ -299,7 +299,7 @@ class HangingProtocolService {
     return (
       this.activeImageLoadStrategyName !== null &&
       this.registeredImageLoadStrategies[
-        this.activeImageLoadStrategyName
+      this.activeImageLoadStrategyName
       ] instanceof Function
     );
   }
@@ -465,6 +465,8 @@ class HangingProtocolService {
     };
   }
 
+  // 这个应该是特别用来在双击后，只将影像放到第1个Viewport当中，返回更新后的Viewport
+  // 更正：在双击时，放到activeViewportIndex；而拖动时则是拖到哪是哪
   getViewportsRequireUpdate(viewportIndex, displaySetInstanceUID) {
     const newDisplaySetInstanceUID = displaySetInstanceUID;
     const protocol = this.protocol;
@@ -481,6 +483,7 @@ class HangingProtocolService {
 
     // if no viewport, then we can assume there is no predefined set of
     // rules that should be applied to this viewport while matching
+    // 多Viewport的话就会走这
     if (!protocolViewport) {
       return defaultReturn;
     }

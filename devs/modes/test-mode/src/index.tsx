@@ -8,6 +8,12 @@ const ohif = {
   rightPanel: '@ohif/extension-default.panelModule.measure',
 };
 
+const tracked = {
+  viewport:
+    '@ohif/extension-measurement-tracking.viewportModule.cornerstone-tracked',
+  // thumbnailList: '@ohif/extension-measurement-tracking.panelModule.seriesList',
+};
+
 const cornerstone = {
   viewport: '@ohif/extension-cornerstone.viewportModule.cornerstone',
 };
@@ -16,13 +22,24 @@ const test = {
   rightPanel: 'test-extension.panelModule.panelTest'
 }
 
+const tmtv = {
+  hangingProtocol: '@ohif/extension-tmtv.hangingProtocolModule.ptCT',
+};
+
+const dicompdf = {
+  sopClassHandler: '@ohif/extension-dicom-pdf.sopClassHandlerModule.dicom-pdf',
+  viewport: '@ohif/extension-dicom-pdf.viewportModule.dicom-pdf',
+};
+
 /**
  * Just two dependencies to be able to render a viewport with panels in order
  * to make sure that the mode is working.
  */
+// 注意：上面所用的Extension都要在这里加上！
 const extensionDependencies = {
   '@ohif/extension-default': '^3.0.0',
   '@ohif/extension-cornerstone': '^3.0.0',
+  '@ohif/extension-measurement-tracking': '^3.0.0',
 };
 
 function modeFactory({ modeConfiguration }) {
@@ -78,12 +95,18 @@ function modeFactory({ modeConfiguration }) {
             id: ohif.layout,
             props: {
               leftPanels: [ohif.leftPanel],
+              // leftPanels: [tracked.thumbnailList],
               rightPanels: [ohif.rightPanel, test.rightPanel],
-              viewports: [
+              viewports: [ // 仅申明，并绑定与Handler的联系
                 {
-                  namespace: cornerstone.viewport,
+                  namespace: tracked.viewport,
+                  // namespace: cornerstone.viewport,
                   displaySetsToDisplay: [ohif.sopClassHandler],
                 },
+                // {
+                //   namespace: dicompdf.viewport,
+                //   displaySetsToDisplay: [ohif.sopClassHandler, dicompdf.sopClassHandler],
+                // },
               ],
             },
           };
@@ -94,8 +117,10 @@ function modeFactory({ modeConfiguration }) {
     extensions: extensionDependencies,
     /** HangingProtocol used by the mode */
     // hangingProtocol: [''],
+    hangingProtocol: ['mpr'], // 申明挂片协议，并具体定义viewports
+    // hangingProtocol: ['default', tmtv.hangingProtocol],
     /** SopClassHandlers used by the mode */
-    sopClassHandlers: [ohif.sopClassHandler],
+    sopClassHandlers: [ohif.sopClassHandler], // 这应该是决定每个DisplaySet的Handler来源（只能从这里面选，具体怎么选的再探究）
     /** hotkeys for mode */
     hotkeys: [''],
   };

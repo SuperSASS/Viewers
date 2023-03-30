@@ -70,6 +70,7 @@ export function ViewportGridProvider({ children, service }) {
 
         // merge the displaySetOptions and viewportOptions and displaySetInstanceUIDs
         // into the viewport object at the given index
+        // 有些抽象，解释一下：就是先把原来这个下表里的对象全部复制归来，然后在其基础上进行覆盖属性修改
         viewports[viewportIndex] = {
           ...viewports[viewportIndex],
           displaySetInstanceUIDs,

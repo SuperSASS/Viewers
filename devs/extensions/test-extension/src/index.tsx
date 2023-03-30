@@ -5,14 +5,7 @@ import React from 'react';
 import PanelTest from './panels/PanelTest'
 import getCustomizationModule from './getCustomizationModule';
 
-/**
- * You can remove any of the following modules if you don't need them.
- */
 export default {
-  /**
-   * Only required property. Should be a unique value across all extensions.
-   * You ID can be anything you want, but it should be unique.
-   */
   id,
 
   /**

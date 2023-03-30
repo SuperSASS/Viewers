@@ -11,6 +11,10 @@ import Compose from './Compose';
 
 /**
  * Initialize the route.
+ * 主要如下步骤：
+ * 1. 查询StudyInstanceUIDs的所有Series
+ * 2. 上一步完成后，生成对应的DisplaySets【通过触发EVENTS.INSTANCES_ADDED订阅时，里面的makeDisplaySets实现的
+ * 3. Promise实现后，run挂片协议【但暂时还是不了解这个run……
  *
  * @param props.servicesManager to read services from
  * @param props.studyInstanceUIDs for a list of studies to read
@@ -27,12 +31,13 @@ function defaultRouteInit(
     HangingProtocolService,
   } = servicesManager.services;
 
+  // 添加订阅，当加载好Series的所有Instance后触发，然后生成对应的DisplaySet
   const unsubscriptions = [];
   const {
     unsubscribe: instanceAddedUnsubscribe,
   } = DicomMetadataStore.subscribe(
     DicomMetadataStore.EVENTS.INSTANCES_ADDED,
-    function({ StudyInstanceUID, SeriesInstanceUID, madeInClient = false }) {
+    function ({ StudyInstanceUID, SeriesInstanceUID, madeInClient = false }) {
       const seriesMetadata = DicomMetadataStore.getSeries(
         StudyInstanceUID,
         SeriesInstanceUID
@@ -44,6 +49,7 @@ function defaultRouteInit(
 
   unsubscriptions.push(instanceAddedUnsubscribe);
 
+  // 查询获得该UID的series
   const allRetrieves = studyInstanceUIDs.map(StudyInstanceUID =>
     dataSource.retrieve.series.metadata({
       StudyInstanceUID,
@@ -56,7 +62,7 @@ function defaultRouteInit(
   // to display anything if a required match fails), so we wait here until all metadata
   // is retrieved (which will synchronously trigger the display set creation)
   // until we run the hanging protocol matching service.
-
+  // 3. Promise实现，生成Studies（注意是Study研究级别的数组），run挂片协议【但暂时还是不了解这个run……
   Promise.allSettled(allRetrieves).then(() => {
     const displaySets = DisplaySetService.getActiveDisplaySets();
 
@@ -68,6 +74,9 @@ function defaultRouteInit(
 
     // Prior studies don't quite work properly yet, but the studies list
     // is at least being generated and passed in.
+    // 这里可能是去重操作：先从当前项获得StudyUID，然后判断是否在Map（重复列表）里，不在就getStudy后加进临时数组prev里；在就跳过
+    // 重新猜测：应该是根据当前的displaySets，得到一个Study列表（对于所有display项，只有StudyUID不同的才能加进去）
+    // 但一般来说，一次只能打开一个Study（除非用All，到时候再看），所以一般最后studies只有一个
     const studies = displaySets.reduce((prev, curr) => {
       const { StudyInstanceUID } = curr;
       if (!studyMap[StudyInstanceUID]) {
@@ -80,10 +89,11 @@ function defaultRouteInit(
 
     // The assumption is that the display set at position 0 is the first
     // study being displayed, and is thus the "active" study.
-    const activeStudy = studies[0];
+    const activeStudy = studies[0]; // 应当是选择默认激活的study为studies的第一个
 
     // run the hanging protocol matching on the displaySets with the predefined
     // hanging protocol in the mode configuration
+    // run起来了！！！……
     HangingProtocolService.run(
       { studies, activeStudy, displaySets },
       hangingProtocol
@@ -103,8 +113,8 @@ export default function ModeRoute({
 }) {
   // Parse route params/querystring
   const location = useLocation();
-  const query = useQuery();
-  const params = useParams();
+  const query = useQuery(); // 指的是URL中的query参数（?后面的）
+  const params = useParams(); // 指的应该是
 
   const [studyInstanceUIDs, setStudyInstanceUIDs] = useState();
 
@@ -133,9 +143,9 @@ export default function ModeRoute({
 
   const dataSources = extensionManager.getActiveDataSource();
 
-  // Only handling one instance of the datasource type (E.g. one DICOMWeb server)
+  // Only handling one instance of the datasource type (E.g. one DICOMWeb server) // 这也是只处理第一个数据源
   const dataSource = dataSources[0];
-  // Only handling one route per mode for now
+  // Only handling one route per mode for now - 现在一个mode只负责一个route？那在mode定义的时候数组只能有一个元素了
   const route = mode.routes[0];
 
   // For each extension, look up their context modules
@@ -172,6 +182,8 @@ export default function ModeRoute({
     };
   }, []);
 
+  // 进入Mode后，Location会变化，导致监听触发
+  // 最后会导致studyInstanceUIDs的变化，触发下一个监听
   useEffect(() => {
     // Todo: this should not be here, data source should not care about params
     const initializeDataSource = async (params, query) => {
@@ -189,6 +201,9 @@ export default function ModeRoute({
   }, [location]);
 
   useEffect(() => {
+    // 这里算是一个关键异步：在这里获取了layoutTemplateData后【应该就是那个布局模板，但不知道会什么会异步【会花很多时间吗？】】
+    // 会更新layoutTemplateData.current，导致后面return时，判断条件满足然后调用renderLayoutData，从而展示各个页面布局组件
+    // 并且会导致后面一个大监听满足条件，然后
     const retrieveLayoutData = async () => {
       const layoutData = await route.layoutTemplate({
         location,
@@ -197,7 +212,7 @@ export default function ModeRoute({
       });
       if (isMounted.current) {
         layoutTemplateData.current = layoutData;
-        setRefresh(!refresh);
+        setRefresh(!refresh); // 【我觉得这个会让页面即可刷新？……
       }
     };
     if (studyInstanceUIDs?.length && studyInstanceUIDs[0] !== undefined) {
@@ -230,6 +245,12 @@ export default function ModeRoute({
     };
   }, []);
 
+  // 大监听：当layoutTemplateData加载好后，进行如下操作：
+  /// 1. 初始化DisplaySet服务
+  /// 2. 应该是调用extensionMananger的什么函数进行初始化
+  /// 3. 调整hangingProtocol服务
+  /// 4. 调用mode.onModeEnter生命周期钩子
+  /// 5. 调用setupRouteInit异步初始化，其中：会进行路由的初始化(defaultRouteInit/route.init)
   useEffect(() => {
     if (!layoutTemplateData.current) {
       return;
@@ -329,17 +350,19 @@ export default function ModeRoute({
       // expected to cleanup the state to a standard setup.
       extensionManager.onModeExit();
     };
-  }, [
-    mode,
-    dataSourceName,
-    location,
-    route,
-    servicesManager,
-    extensionManager,
-    hotkeysManager,
-    studyInstanceUIDs,
-    refresh,
-  ]);
+  },
+
+    [
+      mode,
+      dataSourceName,
+      location,
+      route,
+      servicesManager,
+      extensionManager,
+      hotkeysManager,
+      studyInstanceUIDs,
+      refresh,
+    ]);
 
   const renderLayoutData = props => {
     const layoutTemplateModuleEntry = extensionManager.getModuleEntry(
@@ -354,7 +377,7 @@ export default function ModeRoute({
     <ImageViewerProvider
       // initialState={{ StudyInstanceUIDs: StudyInstanceUIDs }}
       StudyInstanceUIDs={studyInstanceUIDs}
-      // reducer={reducer}
+    // reducer={reducer}
     >
       <CombinedContextProvider>
         <DragAndDropProvider>

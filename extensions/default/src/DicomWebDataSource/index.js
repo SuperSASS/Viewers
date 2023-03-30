@@ -88,6 +88,7 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
     : new api.DICOMwebClient(wadoConfig);
 
   const implementation = {
+    // 这个会根据URL来返回一个请求的StudyInstanceUIDs【但感觉URL上应该只会请求一个，所以这里数组应当只有一个元素……
     initialize: ({ params, query }) => {
       const { StudyInstanceUIDs: paramsStudyInstanceUIDs } = params;
       const queryStudyInstanceUIDs = query.getAll('StudyInstanceUIDs');

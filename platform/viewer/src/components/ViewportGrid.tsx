@@ -435,6 +435,8 @@ function _getViewportComponent(
   }
 
   // Todo: Do we have a viewport that has two different SOPClassHandlerIds?
+  // 回应上面的问题，暂时是没有的，Mode的viewport只是定义支持的viewport，所以应当一类viewport对应一种Handler
+  // 再回应：虽然是可以，但OHIF官方设定的一个viewport只支持一种Handler
   const SOPClassHandlerId = displaySets[0].SOPClassHandlerId;
 
   for (let i = 0; i < viewportComponents.length; i++) {

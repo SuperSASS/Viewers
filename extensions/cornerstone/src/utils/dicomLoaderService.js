@@ -28,9 +28,10 @@ const findImageIdOnStudies = (studies, displaySetInstanceUID) => {
 };
 
 const someInvalidStrings = strings => {
-  const stringsArray = Array.isArray(strings) ? strings : [strings];
-  const emptyString = string => !string;
-  let invalid = stringsArray.some(emptyString);
+  const stringsArray = Array.isArray(strings) ? strings : [strings]; // 判断参数是否是字符串，如果是的话就直接作为参数；否则变为数组
+  /// //~危险修改：由于本项目中URL应当为空('')，故用!string会被判定为非法，所以应当加一个string===''
+  const emptyString = string => !string; // 一个匿名函数，如果有元素为空，则非法！
+  let invalid = stringsArray.some(emptyString); // 开找！
   return invalid;
 };
 
@@ -91,7 +92,10 @@ const getImageLoaderType = imageId => {
   );
 };
 
+// 这个类目前可能只有被seg文件调用，因此只记这类文件
 class DicomLoaderService {
+  // 获得本地的data（imageID开头要为dicomfile）
+  // 故一般这里不会成功
   getLocalData(dataset, studies) {
     // Use referenced imageInstance
     const imageInstance = getImageInstance(dataset);
@@ -118,6 +122,8 @@ class DicomLoaderService {
     }
   }
 
+  // 如果是ImageType（也就是CT那些才有用）
+  // 所以这里也是直接返回
   getDataByImageType(dataset) {
     const imageInstance = getImageInstance(dataset);
 
@@ -182,6 +188,9 @@ class DicomLoaderService {
       wadoUri,
     } = dataset;
     // Retrieve wadors or just try to fetch wadouri
+    // 这里会进行一个Invalid字段验证，可能是这里出问题！
+    // 就是这出问题了！！！！！！！！……
+    /// √关键错误原因：没有wadoRoot！……
     if (!someInvalidStrings(wadoRoot)) {
       return wadorsRetriever(
         wadoRoot,
@@ -203,6 +212,10 @@ class DicomLoaderService {
 
   findDicomDataPromise(dataset, studies, headers) {
     dataset.authorizationHeaders = headers;
+    /// ~危险修改：临时添了个wadoRoot……
+    /// ?错误原因：SEG的instance里就没有wadoRoot，详细可见"错误原因#1"
+    dataset.wadoRoot = "/dicom-web";
+    /// ~
     const loaderIterator = this.getLoaderIterator(dataset, studies);
     // it returns first valid retriever method.
     for (const loader of loaderIterator) {
