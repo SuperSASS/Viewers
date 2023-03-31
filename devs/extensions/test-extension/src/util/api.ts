@@ -1,7 +1,7 @@
 // import axios from axios
 import axios, { AxiosInstance } from "axios";
 
-const ApiUrl = "https://mock.apifox.cn/m1/2236001-0-default";
+const ApiUrl = "http://localhost:65500";
 const ApiTimeout = 0; // 永不超时
 
 class HttpClient {
@@ -15,7 +15,7 @@ class HttpClient {
   }
 
   public async ApplyModelAll(data: ApplyModelAllType): Promise<ResponseType> {
-    const url = "/Segmentation/ApplyModel/AllSlice";
+    const url = "/User/forecast";
     const response = await this.Client.post(url, {}, { params: data });
     return response;
   }
