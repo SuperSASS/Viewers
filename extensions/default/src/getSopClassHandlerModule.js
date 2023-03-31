@@ -10,13 +10,15 @@ const isMultiFrame = instance => {
   return instance.NumberOfFrames > 1;
 };
 
+// Instances指的是当前Series下的所有Instance（相当于切片）
+// 这里就只是创建一个displaySet(ImageSet)，并赋予一定的属性
 const makeDisplaySet = instances => {
   const instance = instances[0];
   const imageSet = new ImageSet(instances);
 
   const displayReconstructableInfo = isDisplaySetReconstructable(instances);
 
-  // set appropriate attributes to image set...
+  // 对imageSet设置相应的属性，来自于instance里
   imageSet.setAttributes({
     displaySetInstanceUID: imageSet.uid, // create a local alias for the imageSet UID
     SeriesDate: instance.SeriesDate,
@@ -35,6 +37,7 @@ const makeDisplaySet = instances => {
   });
 
   // Sort the images in this series if needed
+  // 对存在imageSet里的images，按InstanceNumber（可能类似于SeriesNumber）排序
   const shallSort = true; //!OHIF.utils.ObjectPath.get(Meteor, 'settings.public.ui.sortSeriesByIncomingOrder');
   if (shallSort) {
     imageSet.sortBy((a, b) => {
@@ -64,10 +67,12 @@ const makeDisplaySet = instances => {
   return imageSet;
 };
 
+// 单Instance，单Frame → Single Image Modality
 const isSingleImageModality = modality => {
   return modality === 'CR' || modality === 'MG' || modality === 'DX';
 };
 
+// 根据所有的instances，获得不重复的SOP Class UID
 function getSopClassUids(instances) {
   const uniqueSopClassUidsInSeries = new Set();
   instances.forEach(instance => {
@@ -80,12 +85,10 @@ function getSopClassUids(instances) {
 
 /**
  * Basic SOPClassHandler:
- * - For all Image types that are stackable, create
- *   a displaySet with a stack of images
+ * - 对于所有的可堆叠(Stackable)的影像种类，创建with a images stack的displaySet
  *
- * @param {Array} sopClassHandlerModules List of SOP Class Modules
- * @param {SeriesMetadata} series The series metadata object from which the display sets will be created
- * @returns {Array} The list of display sets created for the given series object
+ * @param {Array} instances 某一个Series的所有Instance
+ * @returns {Array} displaySets，为displaySet（类型为ImageSet）的数组，代表着一个 Series 对象
  */
 function getDisplaySetsFromSeries(instances) {
   // If the series has no instances, stop here
@@ -96,10 +99,9 @@ function getDisplaySetsFromSeries(instances) {
   const displaySets = [];
   const sopClassUids = getSopClassUids(instances);
 
-  // Search through the instances (InstanceMetadata object) of this series
-  // Split Multi-frame instances and Single-image modalities
-  // into their own specific display sets. Place the rest of each
-  // series into another display set.
+  // 搜索这个 series 的 instances (InstanceMetadata js对象)
+  // 区分 多帧(Multi-frame)的 instances 和 单帧(single-image)成像类型(modality)到其相应的 displaySets
+  // 将剩余的 series 又放到一个单独的 displaySets
   const stackableInstances = [];
   instances.forEach(instance => {
     // All imaging modalities must have a valid value for sopClassUid (x00080016) or rows (x00280010)
@@ -107,33 +109,36 @@ function getDisplaySetsFromSeries(instances) {
       return;
     }
 
-    let displaySet;
+    let displaySet; // 一个displaySet代表了 左侧面板 的一个 影像单位（就刻意双击的那个）。
 
-    if (isMultiFrame(instance)) {
+    // 每次读一个Series的所有Instances，有两种情况：
+    /// 1. 该Series的每个Instance，都是一个独立的displaySet（根据frame又分为单图/多图），Instances升级为Series
+    /// 2. 该Series的所有Instances，共同组成了这一个displaySet（此时一般都是单frame），Instances降级为frame
+    if (isMultiFrame(instance)) {  // 分支1 - 让这个instance就代表一个displaySet（晋升为Series的概念）
       displaySet = makeDisplaySet([instance]);
 
       displaySet.setAttributes({
         sopClassUids,
-        isClip: true,
+        isClip: true, // 这个应该代表里面可再根据Frames再分
         numImageFrames: instance.NumberOfFrames,
         instanceNumber: instance.InstanceNumber,
         acquisitionDatetime: instance.AcquisitionDateTime,
       });
       displaySets.push(displaySet);
-    } else if (isSingleImageModality(instance.Modality)) {
+    } else if (isSingleImageModality(instance.Modality)) { // 分支2 - 单instance且单frame，这1instance1frame直接作为一个displaySet
       displaySet = makeDisplaySet([instance]);
       displaySet.setAttributes({
         sopClassUids,
         instanceNumber: instance.InstanceNumber,
         acquisitionDatetime: instance.AcquisitionDateTime,
       });
-      displaySets.push(displaySet);
+      displaySets.push(displaySet) // 分支3 - 由多instance（单frame）组成，此时这些instance会集合为一个Series
     } else {
       stackableInstances.push(instance);
     }
   });
 
-  if (stackableInstances.length) {
+  if (stackableInstances.length) { // 最后统合分支3
     const displaySet = makeDisplaySet(stackableInstances);
     displaySet.setAttribute('studyInstanceUid', instances[0].StudyInstanceUID);
     displaySet.setAttributes({

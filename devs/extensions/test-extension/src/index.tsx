@@ -4,6 +4,8 @@ import React from 'react';
 
 import PanelTest from './panels/PanelTest'
 import getCustomizationModule from './getCustomizationModule';
+import getHangingProtocolModule from './getHangingProtocolModule';
+import getPanelModule from './getPanelModules';
 
 export default {
   id,
@@ -14,42 +16,10 @@ export default {
    * (e.g. cornerstone, cornerstoneTools, ...) or registering any services that
    * this extension is providing.
    */
-  preRegistration: ({
-    servicesManager,
-    commandsManager,
-    configuration = {},
-  }) => { },
-  /**
-   * PanelModule should provide a list of panels that will be available in OHIF
-   * for Modes to consume and render. Each panel is defined by a {name,
-   * iconName, iconLabel, label, component} object. Example of a panel module
-   * is the StudyBrowserPanel that is provided by the default extension in OHIF.
-   */
-  getPanelModule: ({
-    servicesManager,
-    commandsManager,
-    extensionManager,
-  }) => {
-    const warppedPanelTest = () => {
-      return (
-        <PanelTest
-          commandsManager={commandsManager}
-          servicesManager={servicesManager}
-          extensionManager={extensionManager}
-        />
-      );
-    };
+  preRegistration: ({ servicesManager, commandsManager, configuration = {}, }) => { },
+  getPanelModule,
+  getHangingProtocolModule,
 
-    return [
-      {
-        name: 'panelTest',
-        iconName: 'tab-segmentation',
-        iconLabel: 'Segmentation',
-        label: '分割',
-        component: warppedPanelTest,
-      }
-    ]
-  },
   /**
    * ViewportModule should provide a list of viewports that will be available in OHIF
    * for Modes to consume and use in the viewports. Each viewport is defined by
@@ -92,18 +62,6 @@ export default {
    * Examples include the default sop class handler provided by the default extension
    */
   getSopClassHandlerModule: ({
-    servicesManager,
-    commandsManager,
-    extensionManager,
-  }) => { },
-  /**
-   * HangingProtocolModule should provide a list of hanging protocols that will be
-   * available in OHIF for Modes to use to decide on the structure of the viewports
-   * and also the series that hung in the viewports. Each hanging protocol is defined by
-   * { name, protocols}. Examples include the default hanging protocol provided by
-   * the default extension that shows 2x2 viewports.
-   */
-  getHangingProtocolModule: ({
     servicesManager,
     commandsManager,
     extensionManager,

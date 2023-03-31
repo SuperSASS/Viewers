@@ -7,7 +7,7 @@ import dcmjs from 'dcmjs';
 
 const { DicomMessage, DicomMetaDictionary } = dcmjs.data;
 
-const sopClassUids = ['1.2.840.10008.5.1.4.1.1.66.4'];
+const sopClassUids = ['1.2.840.10008.5.1.4.1.1.66.4']; // SEG
 
 let loadPromises = {};
 

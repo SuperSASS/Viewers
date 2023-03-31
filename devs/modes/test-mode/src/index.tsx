@@ -1,35 +1,38 @@
 import { id } from './id';
 
-const ohif = {
-  layout: '@ohif/extension-default.layoutTemplateModule.viewerLayout',
-  sopClassHandler: '@ohif/extension-default.sopClassHandlerModule.stack',
-  hangingProtocol: '@ohif/extension-default.hangingProtocolModule.default',
-  leftPanel: '@ohif/extension-default.panelModule.seriesList',
-  rightPanel: '@ohif/extension-default.panelModule.measure',
+const layoutTemplate = {
+  default: '@ohif/extension-default.layoutTemplateModule.viewerLayout',
 };
 
-const tracked = {
-  viewport:
-    '@ohif/extension-measurement-tracking.viewportModule.cornerstone-tracked',
-  // thumbnailList: '@ohif/extension-measurement-tracking.panelModule.seriesList',
-};
-
-const cornerstone = {
-  viewport: '@ohif/extension-cornerstone.viewportModule.cornerstone',
-};
-
-const test = {
-  rightPanel: 'test-extension.panelModule.panelTest'
+const leftPanels = {
+  default: '@ohif/extension-default.panelModule.seriesList',
+  measurement: '@ohif/extension-measurement-tracking.panelModule.seriesList',
 }
 
-const tmtv = {
-  hangingProtocol: '@ohif/extension-tmtv.hangingProtocolModule.ptCT',
-};
+const rightPanels = {
+  measure: '@ohif/extension-default.panelModule.measure',
+  test: 'test-extension.panelModule.panelTest'
+}
 
-const dicompdf = {
-  sopClassHandler: '@ohif/extension-dicom-pdf.sopClassHandlerModule.dicom-pdf',
-  viewport: '@ohif/extension-dicom-pdf.viewportModule.dicom-pdf',
-};
+
+const viewport = {
+  cornerstone: '@ohif/extension-cornerstone.viewportModule.cornerstone',
+  measurement: '@ohif/extension-measurement-tracking.viewportModule.cornerstone-tracked',
+
+  // dicompdf: '@ohif/extension-dicom-pdf.viewportModule.dicom-pdf',
+}
+
+const sopClassHandler = {
+  default: '@ohif/extension-default.sopClassHandlerModule.stack',
+  // dicompdf: '@ohif/extension-dicom-pdf.sopClassHandlerModule.dicom-pdf',
+}
+
+const hangingProtocol = {
+  ohif_default: '@ohif/extension-default.hangingProtocolModule.default',
+  CocketBoat_default: "test-extension.hangingProtocolModule.CocketBoat_default",
+  mpr: '@ohif/extension-cornerstone.hangingProtocolModule.mpr',
+  // ptCT: '@ohif/extension-tmtv.hangingProtocolModule.ptCT'
+}
 
 /**
  * Just two dependencies to be able to render a viewport with panels in order
@@ -37,6 +40,7 @@ const dicompdf = {
  */
 // 注意：上面所用的Extension都要在这里加上！
 const extensionDependencies = {
+  "test-extension": '^0.0.1',
   '@ohif/extension-default': '^3.0.0',
   '@ohif/extension-cornerstone': '^3.0.0',
   '@ohif/extension-measurement-tracking': '^3.0.0',
@@ -54,7 +58,7 @@ function modeFactory({ modeConfiguration }) {
      * Mode name, which is displayed in the viewer's UI in the workList, for the
      * user to select the mode.
      */
-    displayName: 'Template Mode',
+    displayName: '测试模式',
     /**
      * Runs when the Mode Route is mounted to the DOM. Usually used to initialize
      * Services and other resources.
@@ -92,16 +96,15 @@ function modeFactory({ modeConfiguration }) {
         path: 'template',
         layoutTemplate: ({ location, servicesManager }) => {
           return {
-            id: ohif.layout,
+            id: layoutTemplate.default,
             props: {
-              leftPanels: [ohif.leftPanel],
-              // leftPanels: [tracked.thumbnailList],
-              rightPanels: [ohif.rightPanel, test.rightPanel],
+              leftPanels: [leftPanels.default],
+              rightPanels: [rightPanels.measure, rightPanels.test],
               viewports: [ // 仅申明，并绑定与Handler的联系
                 {
-                  namespace: tracked.viewport,
-                  // namespace: cornerstone.viewport,
-                  displaySetsToDisplay: [ohif.sopClassHandler],
+                  namespace: viewport.measurement,
+                  // namespace: viewport.cornerstone,
+                  displaySetsToDisplay: [sopClassHandler.default],
                 },
                 // {
                 //   namespace: dicompdf.viewport,
@@ -117,10 +120,10 @@ function modeFactory({ modeConfiguration }) {
     extensions: extensionDependencies,
     /** HangingProtocol used by the mode */
     // hangingProtocol: [''],
-    hangingProtocol: ['mpr'], // 申明挂片协议，并具体定义viewports
-    // hangingProtocol: ['default', tmtv.hangingProtocol],
+    // hangingProtocol: ['CocketBoat_default'], // 申明挂片协议，并具体定义viewports
+    hangingProtocol: ['default'],
     /** SopClassHandlers used by the mode */
-    sopClassHandlers: [ohif.sopClassHandler], // 这应该是决定每个DisplaySet的Handler来源（只能从这里面选，具体怎么选的再探究）
+    sopClassHandlers: [sopClassHandler.default], // 这应该是决定每个DisplaySet的Handler来源（只能从这里面选，具体怎么选的再探究）
     /** hotkeys for mode */
     hotkeys: [''],
   };
