@@ -13,6 +13,10 @@ const ohif = {
   thumbnailList: '@ohif/extension-default.panelModule.seriesList',
 };
 
+const test = {
+  panel: 'test-extension.panelModule.panelTest'
+}
+
 const tracked = {
   measurements:
     '@ohif/extension-measurement-tracking.panelModule.trackedMeasurements',
@@ -167,7 +171,7 @@ function modeFactory() {
             id: ohif.layout,
             props: {
               leftPanels: [tracked.thumbnailList],
-              rightPanels: [dicomSeg.panel, tracked.measurements],
+              rightPanels: [dicomSeg.panel, tracked.measurements, test.panel],
               // rightPanelDefaultClosed: true, // optional prop to start with collapse panels
               viewports: [
                 {
