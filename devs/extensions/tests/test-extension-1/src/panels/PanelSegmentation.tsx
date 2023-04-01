@@ -221,7 +221,7 @@ export default function PanelSegmentation({
   const onApplyModelClick = async () => {
     const id = UINotificationService.show({
       title: "AI模型分割中……",
-      message: "1",//"请稍等，当预测完成后，该窗口会自动关闭，且分割结果会自动添加到左侧研究栏中。",
+      message: "请稍等，当预测完成后，该窗口会自动关闭，且分割结果会自动添加到左侧研究栏中。",
       autoClose: false,
     })
     const viewportState = ViewportGridService.getState();
@@ -244,7 +244,7 @@ export default function PanelSegmentation({
       const dataSource = extensionManager.getActiveDataSource()[0];
       dataSource.deleteStudyMetadataPromise(studyUid); // 先要删除缓存
       dataSource.retrieve.series.metadata({
-        studyUid
+        StudyInstanceUID: studyUid
       });
       setTimeout(() =>
         UINotificationService.show({
