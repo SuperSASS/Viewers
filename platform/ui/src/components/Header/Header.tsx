@@ -2,7 +2,8 @@ import React, { ReactNode } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
-import { NavBar, Svg, Icon, IconButton, Dropdown } from '../';
+import { NavBar, Svg, Icon, IconButton, Dropdown, Button } from '../';
+import getIcon from '../Icon/getIcon';
 
 function Header({
   children,
@@ -51,6 +52,9 @@ function Header({
         </div>
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
+          <Button variant="outlined" rounded="full" startIcon={getIcon("upload")} size="special" className="mr-3 text-lg text-common-light">
+            <Icon name="upload" color="inherit" className="w-8 h-8"></Icon>
+          </Button>
           <span className="mr-3 text-lg text-common-light">
             {t('INVESTIGATIONAL USE ONLY')}
           </span>

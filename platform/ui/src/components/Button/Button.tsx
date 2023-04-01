@@ -129,6 +129,7 @@ const borderClasses = {
 };
 
 const sizeClasses = {
+  special: "text-sm min-w-md",
   small: 'py-2 px-2 text-sm min-w-md',
   medium: 'py-2 px-2 text-lg min-w-md',
   large: 'py-2 px-6 text-xl min-w-md',
@@ -214,7 +215,7 @@ Button.defaultProps = {
   color: defaults.color,
   disabled: false,
   children: '',
-  onClick: () => {},
+  onClick: () => { },
 };
 
 Button.propTypes = {

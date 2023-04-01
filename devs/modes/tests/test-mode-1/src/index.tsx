@@ -1,4 +1,6 @@
 import { id } from './id';
+import initToolGroups from './initToopGroup';
+import toolbarButtons from './toolbarButtons';
 
 const layoutTemplate = {
   default: '@ohif/extension-default.layoutTemplateModule.viewerLayout',
@@ -47,6 +49,7 @@ const extensionDependencies = {
   '@ohif/extension-measurement-tracking': '^3.0.0',
 };
 
+let unsubscriptions = [] as any[];
 function modeFactory({ modeConfiguration }) {
   return {
     /**
@@ -60,25 +63,79 @@ function modeFactory({ modeConfiguration }) {
      * user to select the mode.
      */
     displayName: '测试模式',
-    /**
-     * Runs when the Mode Route is mounted to the DOM. Usually used to initialize
-     * Services and other resources.
-     */
-    onModeEnter: ({ servicesManager, extensionManager }) => { },
-    /**
-     * Runs when the Mode Route is unmounted from the DOM. Usually used to clean
-     * up resources and states
-     */
-    onModeExit: () => { },
-    /** */
+
+    onModeEnter: ({ servicesManager, extensionManager, commandsManager }) => {
+      const {
+        measurementService,
+        toolGroupService,
+        toolbarService,
+      } = servicesManager.services;
+
+      measurementService.clearMeasurements(); // 清除之前的测量
+      initToolGroups(extensionManager, toolGroupService, commandsManager); // 初始化工具组
+
+      const activateTool = () => {
+        toolbarService.recordInteraction({
+          groupId: 'WindowLevel',
+          itemId: 'WindowLevel',
+          interactionType: 'tool',
+          commands: [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'WindowLevel',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+        });
+        // We don't need to reset the active tool whenever a viewport is getting added to the toolGroup.
+        unsubscribe();
+      };
+
+
+      // Since we only have one viewport for the basic cs3d mode and it has
+      // only one hanging protocol, we can just use the first viewport
+      const { unsubscribe } = toolGroupService.subscribe(
+        toolGroupService.EVENTS.VIEWPORT_ADDED,
+        activateTool
+      );
+
+      unsubscriptions.push(unsubscribe);
+      toolbarService.init(extensionManager);
+      toolbarService.addButtons(toolbarButtons);
+      toolbarService.createButtonSection('primary', [
+        'MeasurementTools',
+        'Zoom',
+        'WindowLevel',
+        'Pan',
+        'Capture',
+        'Layout',
+        'MPR',
+        'Crosshairs',
+        'MoreTools',
+      ]);
+    },
+    onModeExit: ({ servicesManager }) => {
+      const {
+        toolGroupService,
+        syncGroupService,
+        segmentationService,
+        cornerstoneViewportService,
+      } = servicesManager.services;
+
+      unsubscriptions.forEach(unsubscribe => unsubscribe());
+      toolGroupService.destroy();
+      syncGroupService.destroy();
+      segmentationService.destroy();
+      cornerstoneViewportService.destroy();
+    },
     validationTags: {
       study: [],
       series: [],
     },
-    /**
-     * A boolean return value that indicates whether the mode is valid for the
-     * modalities of the selected studies. For instance a PET/CT mode should be
-     */
+
+
     isValidMode: ({ modalities }) => true,
     /**
      * Mode Routes are used to define the mode's behavior. A list of Mode Route

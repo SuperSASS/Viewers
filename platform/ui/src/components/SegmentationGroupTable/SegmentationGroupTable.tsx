@@ -4,6 +4,8 @@ import Icon from '../Icon';
 import SegmentationGroup from './SegmentationGroup';
 import SegmentationConfig from './SegmentationConfig';
 
+import { useTranslation } from 'react-i18next';
+
 const GetSegmentationConfig = ({
   setFillAlpha,
   setFillAlphaInactive,
@@ -30,22 +32,23 @@ const GetSegmentationConfig = ({
 
 const SegmentationGroupTable = ({
   segmentations,
+  segmentationConfig,
+  showAddSegmentation,
+  showAddSegment,
+  showDeleteSegment,
+  isMinimized,
   onSegmentationAdd,
   onSegmentationEdit,
   onSegmentationClick,
   onSegmentationDelete,
-  showAddSegmentation,
-  showAddSegment,
+  onToggleSegmentationVisibility,
+  onToggleMinimizeSegmentation,
   onSegmentClick,
   onSegmentAdd,
-  segmentationConfig,
   onSegmentDelete,
   onSegmentEdit,
-  onToggleSegmentationVisibility,
-  onToggleSegmentVisibility,
   onSegmentColorClick,
-  isMinimized,
-  onToggleMinimizeSegmentation,
+  onToggleSegmentVisibility,
   setFillAlpha,
   setFillAlphaInactive,
   setOutlineWidthActive,
@@ -54,6 +57,9 @@ const SegmentationGroupTable = ({
   setRenderInactiveSegmentations,
   setRenderOutline,
 }) => {
+  const { t } = useTranslation('PanelSegmentation');
+  const AddSegmentation = t('NewSegmentation');
+
   return (
     <div className="flex flex-col min-h-0 font-inter font-[300]">
       <GetSegmentationConfig
@@ -96,14 +102,15 @@ const SegmentationGroupTable = ({
                 onSegmentationClick={() => onSegmentationClick(id)}
                 activeSegmentIndex={activeSegmentIndex}
                 onToggleMinimizeSegmentation={onToggleMinimizeSegmentation}
+                onSegmentAdd={onSegmentAdd}
+                onSegmentDelete={onSegmentDelete}
                 onSegmentationEdit={onSegmentationEdit}
                 onSegmentationDelete={onSegmentationDelete}
                 onSegmentClick={onSegmentClick}
                 onSegmentEdit={onSegmentEdit}
                 onToggleSegmentVisibility={onToggleSegmentVisibility}
                 onToggleSegmentationVisibility={onToggleSegmentationVisibility}
-                onSegmentAdd={onSegmentAdd}
-                showSegmentDelete={false}
+                showSegmentDelete={showDeleteSegment}
               />
             );
           })}
@@ -114,7 +121,7 @@ const SegmentationGroupTable = ({
           onClick={() => onSegmentationAdd()}
         >
           <Icon name="row-add" className="w-5 h-5" />
-          <div className="pl-1">Add New Segmentation</div>
+          <div className="pl-1">{AddSegmentation}</div>
         </div>
       )}
     </div>
@@ -138,12 +145,12 @@ SegmentationGroupTable.defaultProps = {
   title: '',
   segmentations: [],
   activeSegmentationId: '',
-  onClick: () => {},
-  onEdit: () => {},
-  onDelete: () => {},
-  onToggleLocked: () => {},
-  onToggleVisibility: () => {},
-  onToggleVisibilityAll: () => {},
+  onClick: () => { },
+  onEdit: () => { },
+  onDelete: () => { },
+  onToggleLocked: () => { },
+  onToggleVisibility: () => { },
+  onToggleVisibilityAll: () => { },
   segmentationConfig: {
     initialConfig: {
       fillAlpha: 0.5,
@@ -157,13 +164,13 @@ SegmentationGroupTable.defaultProps = {
     },
     usePercentage: true,
   },
-  setFillAlpha: () => {},
-  setFillAlphaInactive: () => {},
-  setOutlineWidthActive: () => {},
-  setOutlineOpacityActive: () => {},
-  setRenderFill: () => {},
-  setRenderInactiveSegmentations: () => {},
-  setRenderOutline: () => {},
+  setFillAlpha: () => { },
+  setFillAlphaInactive: () => { },
+  setOutlineWidthActive: () => { },
+  setOutlineOpacityActive: () => { },
+  setRenderFill: () => { },
+  setRenderInactiveSegmentations: () => { },
+  setRenderOutline: () => { },
 };
 
 export default SegmentationGroupTable;

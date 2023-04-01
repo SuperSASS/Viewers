@@ -112,16 +112,17 @@ class SegmentationService {
       active?: boolean;
     }
   ): void {
-    if (segmentIndex === 0) {
-      throw new Error('Segment index 0 is reserved for "no label"');
-    }
-
     toolGroupId = toolGroupId ?? this._getFirstToolGroupId();
 
     const {
       segmentationRepresentationUID,
       segmentation,
     } = this._getSegmentationInfo(segmentationId, toolGroupId);
+
+    if (segmentIndex === 0) {
+      // throw new Error('Segment index 0 is reserved for "no label"');
+      segmentIndex = segmentation.segments.length;
+    }
 
     if (this._getSegmentInfo(segmentation, segmentIndex)) {
       throw new Error(`Segment ${segmentIndex} already exists`);
@@ -134,7 +135,7 @@ class SegmentationService {
     );
 
     segmentation.segments[segmentIndex] = {
-      label: properties.label,
+      label: properties ? properties.label : "New Lable",
       segmentIndex: segmentIndex,
       color: [rgbaColor[0], rgbaColor[1], rgbaColor[2]],
       opacity: rgbaColor[3],
@@ -1703,7 +1704,7 @@ class SegmentationService {
       toolGroupId
     );
 
-    if (segmentationRepresentations.length === 0) {
+    if (!segmentationRepresentations || segmentationRepresentations.length === 0) {
       return;
     }
 

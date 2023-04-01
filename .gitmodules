@@ -1,3 +1,9 @@
 [submodule "testdata"]
 	path = testdata
 	url = https://github.com/OHIF/viewer-testdata-dicomweb.git
+[submodule "CocketBoat-Extension"]
+	path = devs/extensions/CocketBoat-Extension
+	url = https://github.com/SuperSASS/CocketBoat-Extension.git
+[submodule "CocketBoat-Mode"]
+	path = devs/modes/CocketBoat-Mode
+	url = https://github.com/SuperSASS/CocketBoat-Mode.git

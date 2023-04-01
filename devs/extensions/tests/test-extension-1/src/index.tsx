@@ -3,6 +3,7 @@ import { id } from './id';
 import getPanelModule from './modules/getPanelModules';
 import getCustomizationModule from './modules/getCustomizationModule';
 import getHangingProtocolModule from './modules/getHangingProtocolModule';
+import commandsModule from './commandsModule';
 
 /**
  * You can remove any of the following modules if you don't need them.
@@ -89,18 +90,13 @@ export default {
    */
   // getHangingProtocolModule;
 
-  /**
-   * CommandsModule should provide a list of commands that will be available in OHIF
-   * for Modes to consume and use in the viewports. Each command is defined by
-   * an object of { actions, definitions, defaultContext } where actions is an
-   * object of functions, definitions is an object of available commands, their
-   * options, and defaultContext is the default context for the command to run against.
-   */
-  getCommandsModule: ({
-    servicesManager,
-    commandsManager,
-    extensionManager,
-  }) => { },
+  // getCommandsModule({ servicesManager, commandsManager, extensionManager }) {
+  //   return commandsModule({
+  //     servicesManager,
+  //     commandsManager,
+  //     extensionManager,
+  //   });
+  // },
   /**
    * ContextModule should provide a list of context that will be available in OHIF
    * and will be provided to the Modes. A context is a state that is shared OHIF.

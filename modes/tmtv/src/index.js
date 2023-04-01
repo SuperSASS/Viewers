@@ -154,7 +154,6 @@ function modeFactory({ modeConfiguration }) {
       const modalities_list = modalities.split('\\');
       const invalidModalities = ['SM'];
 
-      return true;
       // there should be both CT and PT modalities and the modality should not be SM
       return (
         modalities_list.includes('CT') &&
