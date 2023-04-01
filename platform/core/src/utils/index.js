@@ -2,7 +2,6 @@ import ObjectPath from './objectPath';
 import absoluteUrl from './absoluteUrl';
 import guid from './guid';
 import sortBy from './sortBy.js';
-import sortBySeriesDate from './sortBySeriesDate.js';
 import writeScript from './writeScript.js';
 import b64toBlob from './b64toBlob.js';
 //import loadAndCacheDerivedDisplaySets from './loadAndCacheDerivedDisplaySets.js';
@@ -26,6 +25,14 @@ import debounce from './debounce';
 import roundNumber from './roundNumber';
 import downloadCSVReport from './downloadCSVReport';
 import isEqualWithin from './isEqualWithin';
+import {
+  sortStudy,
+  sortStudySeries,
+  sortStudyInstances,
+  sortingCriteria,
+  seriesSortCriteria,
+} from './sortStudy';
+import { subscribeToNextViewportGridChange } from './subscribeToNextViewportGridChange';
 
 // Commented out unused functionality.
 // Need to implement new mechanism for derived displaySets using the displaySetManager.
@@ -35,7 +42,12 @@ const utils = {
   ObjectPath,
   absoluteUrl,
   sortBy,
-  sortBySeriesDate,
+  sortBySeriesDate: sortStudySeries,
+  sortStudy,
+  sortStudySeries,
+  sortStudyInstances,
+  sortingCriteria,
+  seriesSortCriteria,
   writeScript,
   formatDate,
   formatPN,
@@ -58,6 +70,7 @@ const utils = {
   debounce,
   roundNumber,
   downloadCSVReport,
+  subscribeToNextViewportGridChange,
 };
 
 export {

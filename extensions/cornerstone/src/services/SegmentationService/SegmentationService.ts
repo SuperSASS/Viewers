@@ -1,22 +1,22 @@
 import cloneDeep from 'lodash.clonedeep';
 
-import { pubSubServiceInterface } from '@ohif/core';
 import {
-  utilities as cstUtils,
-  segmentation as cstSegmentation,
-  CONSTANTS as cstConstants,
-  Enums as csToolsEnums,
-  Types as cstTypes,
-} from '@cornerstonejs/tools';
-import {
-  eventTarget,
   cache,
+  eventTarget,
+  getEnabledElementByIds,
+  metaData,
+  Types,
   utilities as csUtils,
   volumeLoader,
-  Types,
-  metaData,
-  getEnabledElementByIds,
 } from '@cornerstonejs/core';
+import {
+  CONSTANTS as cstConstants,
+  Enums as csToolsEnums,
+  segmentation as cstSegmentation,
+  Types as cstTypes,
+  utilities as cstUtils,
+} from '@cornerstonejs/tools';
+import { pubSubServiceInterface } from '@ohif/core';
 import isEqual from 'lodash.isequal';
 import { easeInOutBell } from '../../utils/transitions';
 import {
@@ -202,7 +202,7 @@ class SegmentationService {
       this._setActiveSegment(segmentationId, segmentIndex, suppressEvents);
     }
 
-    // Todo: this includes nonhydrated segmentations which might not be
+    // Todo: this includes non-hydrated segmentations which might not be
     // persisted in the store
     this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
       segmentation,
@@ -738,7 +738,7 @@ class SegmentationService {
     highlightHideOthers = false,
     highlightFunctionType: 'ease-in-out' // todo: make animation functions configurable from outside
   ): void {
-    const { ToolGroupService } = this.servicesManager.services;
+    const { toolGroupService } = this.servicesManager.services;
     const center = this._getSegmentCenter(segmentationId, segmentIndex);
 
     const { world } = center;
@@ -751,10 +751,10 @@ class SegmentationService {
 
     if (Array.isArray(toolGroupId)) {
       toolGroupId.forEach(toolGroup => {
-        toolGroups.push(ToolGroupService.getToolGroup(toolGroup));
+        toolGroups.push(toolGroupService.getToolGroup(toolGroup));
       });
     } else {
-      toolGroups.push(ToolGroupService.getToolGroup(toolGroupId));
+      toolGroups.push(toolGroupService.getToolGroup(toolGroupId));
     }
 
     toolGroups.forEach(toolGroup => {
@@ -1240,9 +1240,9 @@ class SegmentationService {
     }
 
     // if (brushSize !== undefined) {
-    //   const { ToolGroupService } = this.servicesManager.services;
+    //   const { toolGroupService } = this.servicesManager.services;
 
-    //   const toolGroupIds = ToolGroupService.getToolGroupIds();
+    //   const toolGroupIds = toolGroupService.getToolGroupIds();
 
     //   toolGroupIds.forEach(toolGroupId => {
     //     cstUtils.segmentation.setBrushSizeForToolGroup(toolGroupId, brushSize);
@@ -1250,9 +1250,9 @@ class SegmentationService {
     // }
 
     // if (brushThresholdGate !== undefined) {
-    //   const { ToolGroupService } = this.servicesManager.services;
+    //   const { toolGroupService } = this.servicesManager.services;
 
-    //   const toolGroupIds = ToolGroupService.getFirstToolGroupIds();
+    //   const toolGroupIds = toolGroupService.getFirstToolGroupIds();
 
     //   toolGroupIds.forEach(toolGroupId => {
     //     cstUtils.segmentation.setBrushThresholdForToolGroup(
@@ -1324,11 +1324,11 @@ class SegmentationService {
       return false;
     }
 
-    const { DisplaySetService } = this.servicesManager.services;
+    const { displaySetService } = this.servicesManager.services;
 
     let shouldDisplaySeg = false;
 
-    const segDisplaySet = DisplaySetService.getDisplaySetByUID(
+    const segDisplaySet = displaySetService.getDisplaySetByUID(
       segDisplaySetInstanceUID
     );
 
@@ -1337,7 +1337,7 @@ class SegmentationService {
     viewportDisplaySetInstanceUIDs.forEach(displaySetInstanceUID => {
       // check if the displaySet is sharing the same frameOfReferenceUID
       // with the new segmentation
-      const displaySet = DisplaySetService.getDisplaySetByUID(
+      const displaySet = displaySetService.getDisplaySetByUID(
         displaySetInstanceUID
       );
 
@@ -1591,12 +1591,19 @@ class SegmentationService {
 
     segmentInfo.isVisible = isVisible;
 
-    cstSegmentation.config.visibility.setVisibilityForSegmentIndex(
+    cstSegmentation.config.visibility.setSegmentVisibility(
       toolGroupId,
       segmentationRepresentationUID,
       segmentIndex,
       isVisible
     );
+
+    // make sure to update the isVisible flag on the segmentation
+    // if a segment becomes invisible then the segmentation should be invisible
+    // in the status as well, and show correct icon
+    segmentation.isVisible = segmentation.segments
+      .filter(Boolean)
+      .every(segment => segment.isVisible);
 
     if (suppressEvents === false) {
       this._broadcastEvent(this.EVENTS.SEGMENTATION_UPDATED, {
@@ -1710,7 +1717,7 @@ class SegmentationService {
   }
 
   private _setLabelmapConfigValue = (property, value) => {
-    const { CornerstoneViewportService } = this.servicesManager.services;
+    const { cornerstoneViewportService } = this.servicesManager.services;
 
     const config = cstSegmentation.config.getGlobalConfig();
 
@@ -1719,8 +1726,8 @@ class SegmentationService {
     // Todo: add non global (representation specific config as well)
     cstSegmentation.config.setGlobalConfig(config);
 
-    const renderingEngine = CornerstoneViewportService.getRenderingEngine();
-    const viewportIds = CornerstoneViewportService.getViewportIds();
+    const renderingEngine = cornerstoneViewportService.getRenderingEngine();
+    const viewportIds = cornerstoneViewportService.getViewportIds();
 
     renderingEngine.renderViewports(viewportIds);
   };
@@ -1917,28 +1924,27 @@ class SegmentationService {
         representation => representation.segmentationId === segmentationId
       );
 
-      const visibility = cstSegmentation.config.visibility.getSegmentationVisibility(
-        toolGroupId,
-        representation.segmentationRepresentationUID
-      );
+      const { segmentsHidden } = representation;
+
+      const currentVisibility = segmentsHidden.size === 0 ? true : false;
+      const newVisibility = !currentVisibility;
 
       cstSegmentation.config.visibility.setSegmentationVisibility(
         toolGroupId,
         representation.segmentationRepresentationUID,
-        !visibility
+        newVisibility
       );
 
-      // set all segments to visible as well
-      const segments = this.getSegmentation(segmentationId).segments;
-      Object.keys(segments).forEach(segmentIndex => {
-        if (segmentIndex !== '0') {
-          this._setSegmentVisibility(
-            segmentationId,
-            Number(segmentIndex),
-            !visibility,
-            toolGroupId
-          );
-        }
+      // update segments visibility
+      const { segmentation } = this._getSegmentationInfo(
+        segmentationId,
+        toolGroupId
+      );
+
+      const segments = segmentation.segments.filter(Boolean);
+
+      segments.forEach(segment => {
+        segment.isVisible = newVisibility;
       });
     });
   };
@@ -1953,8 +1959,8 @@ class SegmentationService {
   }
 
   private _getFirstToolGroupId = () => {
-    const { ToolGroupService } = this.servicesManager.services;
-    const toolGroupIds = ToolGroupService.getToolGroupIds();
+    const { toolGroupService } = this.servicesManager.services;
+    const toolGroupIds = toolGroupService.getToolGroupIds();
 
     return toolGroupIds[0];
   };

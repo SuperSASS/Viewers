@@ -49,7 +49,7 @@ const metadataProvider = classes.MetadataProvider;
  * @param {bool} lazyLoadStudy - "enableStudyLazyLoad"; Request series meta async instead of blocking
  * @param {string|bool} singlepart - indicates of the retrieves can fetch singlepart.  Options are bulkdata, video, image or boolean true
  */
-function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
+function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
   const {
     qidoRoot,
     wadoRoot,
@@ -65,7 +65,7 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
     url: qidoRoot,
     staticWado,
     singlepart,
-    headers: UserAuthenticationService.getAuthorizationHeader(),
+    headers: userAuthenticationService.getAuthorizationHeader(),
     errorInterceptor: errorHandler.getHTTPErrorHandler(),
   };
 
@@ -73,7 +73,7 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
     url: wadoRoot,
     staticWado,
     singlepart,
-    headers: UserAuthenticationService.getAuthorizationHeader(),
+    headers: userAuthenticationService.getAuthorizationHeader(),
     errorInterceptor: errorHandler.getHTTPErrorHandler(),
   };
 
@@ -105,8 +105,8 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
     query: {
       studies: {
         mapParams: mapParams.bind(),
-        search: async function (origParams) {
-          const headers = UserAuthenticationService.getAuthorizationHeader();
+        search: async function(origParams) {
+          const headers = userAuthenticationService.getAuthorizationHeader();
           if (headers) {
             qidoDicomWebClient.headers = headers;
           }
@@ -130,8 +130,8 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
       },
       series: {
         // mapParams: mapParams.bind(),
-        search: async function (studyInstanceUid) {
-          const headers = UserAuthenticationService.getAuthorizationHeader();
+        search: async function(studyInstanceUid) {
+          const headers = userAuthenticationService.getAuthorizationHeader();
           if (headers) {
             qidoDicomWebClient.headers = headers;
           }
@@ -147,7 +147,7 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
       },
       instances: {
         search: (studyInstanceUid, queryParameters) => {
-          const headers = UserAuthenticationService.getAuthorizationHeader();
+          const headers = userAuthenticationService.getAuthorizationHeader();
           if (headers) {
             qidoDicomWebClient.headers = headers;
           }
@@ -185,7 +185,7 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
           sortFunction,
           madeInClient = false,
         } = {}) => {
-          const headers = UserAuthenticationService.getAuthorizationHeader();
+          const headers = userAuthenticationService.getAuthorizationHeader();
           if (headers) {
             wadoDicomWebClient.headers = headers;
           }
@@ -219,7 +219,7 @@ function createDicomWebApi(dicomWebConfig, UserAuthenticationService) {
 
     store: {
       dicom: async dataset => {
-        const headers = UserAuthenticationService.getAuthorizationHeader();
+        const headers = userAuthenticationService.getAuthorizationHeader();
         if (headers) {
           wadoDicomWebClient.headers = headers;
         }

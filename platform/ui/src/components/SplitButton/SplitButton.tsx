@@ -26,7 +26,7 @@ const classes = {
       baseClasses.Button,
       !isExpanded &&
         !primary.isActive &&
-        'hover:bg-primary-dark hover:border-primary-dark'
+        'hover:!bg-primary-dark hover:border-primary-dark'
     ),
   Interface: 'h-full flex flex-row items-center',
   Primary: ({ primary, isExpanded }) =>
@@ -34,7 +34,7 @@ const classes = {
       baseClasses.Primary,
       primary.isActive
         ? isExpanded
-          ? 'border-primary-dark !bg-primary-dark hover:border-primary-dark text-primary-light'
+          ? 'border-primary-dark !bg-primary-dark hover:border-primary-dark !text-primary-light'
           : `${
               primary.isToggle
                 ? 'border-secondary-dark bg-secondary-light'
@@ -45,7 +45,7 @@ const classes = {
         ${
           isExpanded
             ? 'border-primary-dark bg-primary-dark !text-primary-light'
-            : 'border-secondary-dark bg-secondary-dark group-hover/button:border-primary-dark group-hover/button:text-primary-light hover:bg-primary-dark hover:border-primary-dark focus:!text-black'
+            : 'border-secondary-dark bg-secondary-dark group-hover/button:border-primary-dark group-hover/button:text-primary-light hover:!bg-primary-dark hover:border-primary-dark focus:!text-black'
         }
         `
     ),
@@ -92,7 +92,7 @@ const SplitButton = ({
 }) => {
   const { t } = useTranslation('Buttons');
 
-  const { ToolBarService } = servicesManager.services;
+  const { toolbarService } = servicesManager.services;
 
   const { primaryToolId, toggles } = bState;
   /* Bubbles up individual item clicks */
@@ -146,7 +146,7 @@ const SplitButton = ({
     (isPrimaryToggle && toggles[state.primary.id] === true);
 
   const PrimaryButtonComponent =
-    ToolBarService.getButtonComponentForUIType(state.primary.uiType) ??
+    toolbarService.getButtonComponentForUIType(state.primary.uiType) ??
     ToolbarButton;
 
   const primaryButtonClassName = classes.Primary({
@@ -168,9 +168,11 @@ const SplitButton = ({
             : 'text-common-bright hover:bg-primary-dark hover:text-primary-light'
         )}
       >
-        <span className="mr-4">
-          <Icon name={icon} className="w-5 h-5" />
-        </span>
+        {icon && (
+          <span className="mr-4">
+            <Icon name={icon} className="w-5 h-5" />
+          </span>
+        )}
         <span className="mr-5">{t(label)}</span>
       </div>
     );
@@ -197,7 +199,7 @@ const SplitButton = ({
                 {...state.primary}
                 bState={bState}
                 isActive={isPrimaryActive}
-                onInteraction={args => ToolBarService.recordInteraction(args)}
+                onInteraction={args => toolbarService.recordInteraction(args)}
                 servicesManager={servicesManager}
                 // All rounding is taken care of by className
                 rounded="none"
@@ -295,7 +297,7 @@ SplitButton.propTypes = {
       isActive: PropTypes.bool,
     })
   ),
-  /** Callback function to inform ToolBarService of important events */
+  /** Callback function to inform toolbarService of important events */
   onInteraction: PropTypes.func.isRequired,
 };
 
