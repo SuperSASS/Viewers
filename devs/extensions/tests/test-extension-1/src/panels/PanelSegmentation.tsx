@@ -4,6 +4,7 @@ import { SegmentationGroupTable, Button } from '@ohif/ui';
 
 import { ApplyModelAllType } from "../utils/api";
 import callInputDialog from '../utils/callInputDialog';
+import api from "../utils/api";
 // import callColorPickerDialog from './callColorPickerDialog';
 
 export default function PanelSegmentation({
@@ -234,7 +235,6 @@ export default function PanelSegmentation({
       studyUid,
       seriesUid,
       segType: 0,
-      apifoxResponseId: "182169153",
     };
 
     try {

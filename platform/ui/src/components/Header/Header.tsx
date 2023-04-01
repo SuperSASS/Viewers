@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import { NavBar, Svg, Icon, IconButton, Dropdown, Button } from '../';
-import getIcon from '../Icon/getIcon';
 
 function Header({
   children,
@@ -13,6 +12,7 @@ function Header({
   isSticky,
   WhiteLabeling,
   onUpload,
+  onSelect,
   ...props
 }): ReactNode {
   const { t } = useTranslation('Header');
@@ -53,8 +53,8 @@ function Header({
         </div>
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
-          <input type="file" name="filename" id="fileInput" multiple className="invisible" />
-          <Button onClick={onUpload} variant="outlined" rounded="full" size="special" className="mr-3 text-lg text-common-light">
+          <input type="file" name="filename" id="fileInput" multiple onChange={onUpload} className="invisible" />
+          <Button onClick={onSelect} variant="outlined" rounded="full" size="special" className="mr-3 text-lg text-common-light">
             <Icon name="upload" className="stroke-current w-8 h-8 mr-auto ml-2"></Icon>
 
             <div className='mr-2'>上传影像</div>

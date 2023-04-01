@@ -1,7 +1,8 @@
 // import axios from axios
 import axios, { AxiosInstance } from "axios";
 
-const ApiUrl = "https://mock.apifox.cn/m1/2236001-0-default";
+// const ApiUrl = "https://mock.apifox.cn/m1/2236001-0-default";
+const ApiUrl = "http://localhost:65500";
 const ApiTimeout = 0; // 永不超时
 
 class HttpClient {
@@ -29,7 +30,7 @@ class HttpClient {
   }
 
   public async UploadFile(data: FormData): Promise<ResponseType> {
-    const url = "/User/Upload";
+    const url = "/User/upload";
     const headers = {
       'Content-Type': 'multipart/form-data'
     };
