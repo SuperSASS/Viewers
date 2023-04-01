@@ -74,8 +74,8 @@ function _getDisplaySetsFromSeries(
   // 这里应该是得到SEG文件参考Image文件的DisplaySet
   // 对的，SEG文件里的"ReferencedSeriesSequence"里的"SeriesInstanceUID"记录的就是参照影像的UID
   displaySet.getReferenceDisplaySet = () => {
-    const { DisplaySetService } = servicesManager.services;
-    const referencedDisplaySets = DisplaySetService.getDisplaySetsForSeries(
+    const { displaySetService } = servicesManager.services;
+    const referencedDisplaySets = displaySetService.getDisplaySetsForSeries(
       displaySet.referencedSeriesInstanceUID
     );
 
@@ -119,9 +119,9 @@ function _load(segDisplaySet, servicesManager, extensionManager, headers) {
   // We don't want to fire multiple loads, so we'll wait for the first to finish
   // and also return the same promise to any other callers.
   loadPromises[SOPInstanceUID] = new Promise(async (resolve, reject) => {
-    const { SegmentationService } = servicesManager.services;
+    const { segmentationService } = servicesManager.services;
 
-    if (_segmentationExistsInCache(segDisplaySet, SegmentationService)) {
+    if (_segmentationExistsInCache(segDisplaySet, segmentationService)) {
       return;
     }
 
@@ -139,7 +139,7 @@ function _load(segDisplaySet, servicesManager, extensionManager, headers) {
     }
 
     const suppressEvents = true;
-    SegmentationService.createSegmentationForSEGDisplaySet(
+    segmentationService.createSegmentationForSEGDisplaySet(
       segDisplaySet,
       null,
       suppressEvents
@@ -186,10 +186,10 @@ async function _loadSegments(extensionManager, segDisplaySet, headers) {
 }
 
 // 判断segmentation是不是已经在缓存里了
-function _segmentationExistsInCache(segDisplaySet, SegmentationService) {
+function _segmentationExistsInCache(segDisplaySet, segmentationService) {
   // This should be abstracted with the CornerstoneCacheService
   const labelmapVolumeId = segDisplaySet.displaySetInstanceUID;
-  const segVolume = SegmentationService.getLabelmapVolume(labelmapVolumeId);
+  const segVolume = segmentationService.getLabelmapVolume(labelmapVolumeId);
 
   return segVolume !== undefined;
 }

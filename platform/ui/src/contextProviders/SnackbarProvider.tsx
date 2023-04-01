@@ -46,12 +46,15 @@ const SnackbarProvider = ({ children, service }) => {
 
       setSnackbarItems(state => [...state, newItem]);
       setCount(count + 1);
+      return newItem.id;
     },
     [count, DEFAULT_OPTIONS]
   );
 
   const hide = useCallback(
     id => {
+      if (typeof id === "object")
+        id = id.id;
       const hideItem = items => {
         const newItems = items.map(item => {
           if (item.id === id) {

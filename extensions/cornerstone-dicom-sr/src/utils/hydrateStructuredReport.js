@@ -1,15 +1,34 @@
 import { utilities, metaData } from '@cornerstonejs/core';
 import OHIF, { DicomMetadataStore } from '@ohif/core';
 import getLabelFromDCMJSImportedToolData from './getLabelFromDCMJSImportedToolData';
-import { adapters } from 'dcmjs';
+import { adaptersSR } from '@cornerstonejs/adapters';
 
 const { guid } = OHIF.utils;
-const { MeasurementReport, CORNERSTONE_3D_TAG } = adapters.Cornerstone3D;
+const { MeasurementReport, CORNERSTONE_3D_TAG } = adaptersSR.Cornerstone3D;
 
 const CORNERSTONE_3D_TOOLS_SOURCE_NAME = 'Cornerstone3DTools';
 const CORNERSTONE_3D_TOOLS_SOURCE_VERSION = '0.1';
 
 const supportedLegacyCornerstoneTags = ['cornerstoneTools@^4.0.0'];
+
+const convertCode = (codingValues, code) => {
+  if (!code || code.CodingSchemeDesignator === 'CORNERSTONEJS') return;
+  const ref = `${code.CodingSchemeDesignator}:${code.CodeValue}`;
+  const ret = { ...codingValues[ref], ref, ...code, text: code.CodeMeaning };
+  return ret;
+};
+
+const convertSites = (codingValues, sites) => {
+  if (!sites || !sites.length) return;
+  const ret = [];
+  // Do as a loop to convert away from Proxy instances
+  for (let i = 0; i < sites.length; i++) {
+    // Deal with irregular conversion from dcmjs
+    const site = convertCode(codingValues, sites[i][0] || sites[i]);
+    if (site) ret.push(site);
+  }
+  return (ret.length && ret) || undefined;
+};
 
 /**
  * Hydrates a structured report, for default viewports.
@@ -20,14 +39,22 @@ export default function hydrateStructuredReport(
   displaySetInstanceUID
 ) {
   const dataSource = extensionManager.getActiveDataSource()[0];
-  const { MeasurementService, DisplaySetService } = servicesManager.services;
+  const {
+    measurementService,
+    displaySetService,
+    customizationService,
+  } = servicesManager.services;
 
-  const displaySet = DisplaySetService.getDisplaySetByUID(
+  const codingValues = customizationService.getCustomization(
+    'codingValues',
+    {}
+  );
+  const displaySet = displaySetService.getDisplaySetByUID(
     displaySetInstanceUID
   );
 
   // TODO -> We should define a strict versioning somewhere.
-  const mappings = MeasurementService.getSourceMappings(
+  const mappings = measurementService.getSourceMappings(
     CORNERSTONE_3D_TOOLS_SOURCE_NAME,
     CORNERSTONE_3D_TOOLS_SOURCE_VERSION
   );
@@ -166,17 +193,26 @@ export default function hydrateStructuredReport(
         },
       };
 
-      const source = MeasurementService.getSource(
+      const source = measurementService.getSource(
         CORNERSTONE_3D_TOOLS_SOURCE_NAME,
         CORNERSTONE_3D_TOOLS_SOURCE_VERSION
       );
       annotation.data.label = getLabelFromDCMJSImportedToolData(toolData);
+      annotation.data.finding = convertCode(
+        codingValues,
+        toolData.finding?.[0]
+      );
+      annotation.data.findingSites = convertSites(
+        codingValues,
+        toolData.findingSites
+      );
+      annotation.data.site = annotation.data.findingSites?.[0];
 
       const matchingMapping = mappings.find(
         m => m.annotationType === annotationType
       );
 
-      MeasurementService.addRawMeasurement(
+      measurementService.addRawMeasurement(
         source,
         annotationType,
         { annotation },

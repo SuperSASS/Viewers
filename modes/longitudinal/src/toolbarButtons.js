@@ -27,18 +27,6 @@ function _createButton(type, id, icon, label, commands, tooltip, uiType) {
   };
 }
 
-function _createCommands(commandName, toolName, toolGroupIds) {
-  return toolGroupIds.map(toolGroupId => ({
-    /* It's a command that is being run when the button is clicked. */
-    commandName,
-    commandOptions: {
-      toolName,
-      toolGroupId,
-    },
-    context: 'CORNERSTONE',
-  }));
-}
-
 const _createActionButton = _createButton.bind(null, 'action');
 const _createToggleButton = _createButton.bind(null, 'toggle');
 const _createToolButton = _createButton.bind(null, 'tool');
@@ -65,6 +53,26 @@ function _createWwwcPreset(preset, title, subtitle) {
       },
     ],
   };
+}
+
+const toolGroupIds = ['default', 'mpr', 'SRToolGroup'];
+
+/**
+ * Creates an array of 'setToolActive' commands for the given toolName - one for
+ * each toolGroupId specified in toolGroupIds.
+ * @param {string} toolName
+ * @returns {Array} an array of 'setToolActive' commands
+ */
+function _createSetToolActiveCommands(toolName) {
+  const temp = toolGroupIds.map(toolGroupId => ({
+    commandName: 'setToolActive',
+    commandOptions: {
+      toolGroupId,
+      toolName,
+    },
+    context: 'CORNERSTONE',
+  }));
+  return temp;
 }
 
 const toolbarButtons = [
@@ -211,15 +219,7 @@ const toolbarButtons = [
       type: 'tool',
       icon: 'tool-zoom',
       label: 'Zoom',
-      commands: [
-        {
-          commandName: 'setToolActive',
-          commandOptions: {
-            toolName: 'Zoom',
-          },
-          context: 'CORNERSTONE',
-        },
-      ],
+      commands: _createSetToolActiveCommands('Zoom'),
     },
   },
   // Window Level + Presets...
@@ -268,15 +268,7 @@ const toolbarButtons = [
       type: 'tool',
       icon: 'tool-move',
       label: 'Pan',
-      commands: [
-        {
-          commandName: 'setToolActive',
-          commandOptions: {
-            toolName: 'Pan',
-          },
-          context: 'CORNERSTONE',
-        },
-      ],
+      commands: _createSetToolActiveCommands('Pan'),
     },
   },
   {
@@ -312,9 +304,11 @@ const toolbarButtons = [
       label: 'MPR',
       commands: [
         {
-          commandName: 'toggleMPR',
-          commandOptions: {},
-          context: 'CORNERSTONE',
+          commandName: 'toggleHangingProtocol',
+          commandOptions: {
+            protocolId: 'mpr',
+          },
+          context: 'DEFAULT',
         },
       ],
     },
@@ -330,8 +324,8 @@ const toolbarButtons = [
         {
           commandName: 'setToolActive',
           commandOptions: {
-            toolGroupId: 'mpr',
             toolName: 'Crosshairs',
+            toolGroupId: 'mpr',
           },
           context: 'CORNERSTONE',
         },
@@ -493,6 +487,38 @@ const toolbarButtons = [
           ],
           'Angle'
         ),
+
+        // Next two tools can be added once icons are added
+        // _createToolButton(
+        //   'Cobb Angle',
+        //   'tool-cobb-angle',
+        //   'Cobb Angle',
+        //   [
+        //     {
+        //       commandName: 'setToolActive',
+        //       commandOptions: {
+        //         toolName: 'CobbAngle',
+        //       },
+        //       context: 'CORNERSTONE',
+        //     },
+        //   ],
+        //   'Cobb Angle'
+        // ),
+        // _createToolButton(
+        //   'Planar Freehand ROI',
+        //   'tool-freehand',
+        //   'PlanarFreehandROI',
+        //   [
+        //     {
+        //       commandName: 'setToolActive',
+        //       commandOptions: {
+        //         toolName: 'PlanarFreehandROI',
+        //       },
+        //       context: 'CORNERSTONE',
+        //     },
+        //   ],
+        //   'Planar Freehand ROI'
+        // ),
         _createToolButton(
           'Magnify',
           'tool-magnify',
@@ -522,6 +548,21 @@ const toolbarButtons = [
             },
           ],
           'Rectangle'
+        ),
+        _createToolButton(
+          'CalibrationLine',
+          'tool-calibration',
+          'Calibration',
+          [
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'CalibrationLine',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Calibration Line'
         ),
         _createActionButton(
           'TagBrowser',

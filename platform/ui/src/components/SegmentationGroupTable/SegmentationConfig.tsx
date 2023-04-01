@@ -3,6 +3,8 @@ import { Icon, InputRange, CheckBox, InputNumber } from '../';
 import classNames from 'classnames';
 import { reducer } from './segmentationConfigReducer';
 
+import { useTranslation } from 'react-i18next';
+
 const ActiveSegmentationConfig = ({
   config,
   dispatch,
@@ -13,12 +15,23 @@ const ActiveSegmentationConfig = ({
   setFillAlpha,
   usePercentage,
 }) => {
+  const { t } = useTranslation('PanelSegmentation');
+
+  const [
+    useOutlineOpacityPercentage,
+    setUseOutlineOpacityPercentage,
+  ] = useState(usePercentage);
+
+  const [useFillAlphaPercentage, setUseFillAlphaPercentage] = useState(
+    usePercentage
+  );
+
   return (
     <div className="flex justify-between text-[12px] pt-[13px] px-2">
       <div className="flex flex-col items-start">
-        <div className="text-white mb-[12px]">Active</div>
+        <div className="text-white mb-[12px]">{t('Appreance_Active') as string}</div>
         <CheckBox
-          label="Outline"
+          label={t('Appreance_Outline')}
           checked={config.renderOutline}
           labelClassName="text-[12px] pl-1 pt-1"
           className="mb-[9px]"
@@ -34,7 +47,7 @@ const ActiveSegmentationConfig = ({
           }}
         />
         <CheckBox
-          label="Fill"
+          label={t('Appreance_Fill')}
           checked={config.renderFill}
           labelClassName="text-[12px] pl-1 pt-1"
           className="mb-[9px]"
@@ -52,14 +65,17 @@ const ActiveSegmentationConfig = ({
       </div>
 
       <div className="flex flex-col items-center col-span-2">
-        <div className="text-[#b3b3b3] text-[10px] mb-[12px]">Opacity</div>
+        <div className="text-[#b3b3b3] text-[10px] mb-[12px]">{t('Appreance_Opacity') as string}</div>
         <InputRange
           minValue={0}
           maxValue={usePercentage ? 100 : 1}
           value={
-            usePercentage ? config.outlineOpacity * 100 : config.outlineOpacity
+            useOutlineOpacityPercentage
+              ? config.outlineOpacity * 100
+              : config.outlineOpacity
           }
           onChange={value => {
+            setUseOutlineOpacityPercentage(false);
             dispatch({
               type: 'SET_OUTLINE_OPACITY',
               payload: {
@@ -78,8 +94,11 @@ const ActiveSegmentationConfig = ({
         <InputRange
           minValue={0}
           maxValue={usePercentage ? 100 : 1}
-          value={usePercentage ? config.fillAlpha * 100 : config.fillAlpha}
+          value={
+            useFillAlphaPercentage ? config.fillAlpha * 100 : config.fillAlpha
+          }
           onChange={value => {
+            setUseFillAlphaPercentage(false);
             dispatch({
               type: 'SET_FILL_ALPHA',
               payload: {
@@ -98,7 +117,7 @@ const ActiveSegmentationConfig = ({
       </div>
 
       <div className="flex flex-col items-center">
-        <div className="text-[#b3b3b3] text-[10px] mb-[12px]">Size</div>
+        <div className="text-[#b3b3b3] text-[10px] mb-[12px]">{t('Appreance_Size') as string}</div>
         <InputNumber
           value={config.outlineWidthActive}
           onChange={value => {
@@ -125,10 +144,17 @@ const InactiveSegmentationConfig = ({
   setFillAlphaInactive,
   usePercentage,
 }) => {
+  const { t } = useTranslation('PanelSegmentation');
+
+  const [
+    useFillAlphaInactivePercentage,
+    setUseFillInactivePercentage,
+  ] = useState(usePercentage);
+
   return (
     <div className="px-2">
       <CheckBox
-        label="Display Inactive Segmentations"
+        label={t('Appreance_DisplayInactive') as string}
         checked={config.renderInactiveSegmentations}
         labelClassName="text-[12px] pt-1"
         className="mb-[9px]"
@@ -145,16 +171,17 @@ const InactiveSegmentationConfig = ({
       />
 
       <div className="flex pl-4 items-center space-x-2">
-        <span className="text-[10px] text-[#b3b3b3]">Opacity</span>
+        <span className="text-[10px] text-[#b3b3b3]">{t('Appreance_Opacity') as string}</span>
         <InputRange
           minValue={0}
           maxValue={usePercentage ? 100 : 1}
           value={
-            usePercentage
+            useFillAlphaInactivePercentage
               ? config.fillAlphaInactive * 100
               : config.fillAlphaInactive
           }
           onChange={value => {
+            setUseFillInactivePercentage(false);
             dispatch({
               type: 'SET_FILL_ALPHA_INACTIVE',
               payload: {
@@ -185,6 +212,8 @@ const SegmentationConfig = ({
   setRenderInactiveSegmentations,
   setRenderOutline,
 }) => {
+  const { t } = useTranslation('PanelSegmentation');
+
   const [config, dispatch] = React.useReducer(
     reducer,
     segmentationConfig.initialConfig
@@ -210,7 +239,7 @@ const SegmentationConfig = ({
           )}
         />
         <span className="text-[#d8d8d8] text-[12px] font-[300]">
-          {'Segmentation Appearance'}
+          {t('Segmentation Appearance') as string}
         </span>
       </div>
       {/* active segmentation */}
@@ -234,7 +263,7 @@ const SegmentationConfig = ({
             className="flex items-center cursor-pointer pl-2 pb-[9px]"
           >
             <span className="text-[#d8d8d8] text-[12px] font-[300]">
-              {'Inactive Segmentations'}
+              {t('Inactive Segmentations') as string}
             </span>
           </div>
           <InactiveSegmentationConfig

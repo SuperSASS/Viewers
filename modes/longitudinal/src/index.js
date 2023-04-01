@@ -61,6 +61,7 @@ const extensionDependencies = {
 };
 
 function modeFactory() {
+  let _activatePanelTriggersSubscriptions = [];
   return {
     // TODO: We're using this as a route segment
     // We should not be.
@@ -72,20 +73,22 @@ function modeFactory() {
      */
     onModeEnter: ({ servicesManager, extensionManager, commandsManager }) => {
       const {
-        MeasurementService,
-        ToolBarService,
-        ToolGroupService,
+        measurementService,
+        toolbarService,
+        toolGroupService,
+        panelService,
+        segmentationService,
       } = servicesManager.services;
 
-      MeasurementService.clearMeasurements();
+      measurementService.clearMeasurements();
 
       // Init Default and SR ToolGroups
-      initToolGroups(extensionManager, ToolGroupService, commandsManager);
+      initToolGroups(extensionManager, toolGroupService, commandsManager);
 
       let unsubscribe;
 
       const activateTool = () => {
-        ToolBarService.recordInteraction({
+        toolbarService.recordInteraction({
           groupId: 'WindowLevel',
           itemId: 'WindowLevel',
           interactionType: 'tool',
@@ -107,14 +110,14 @@ function modeFactory() {
 
       // Since we only have one viewport for the basic cs3d mode and it has
       // only one hanging protocol, we can just use the first viewport
-      ({ unsubscribe } = ToolGroupService.subscribe(
-        ToolGroupService.EVENTS.VIEWPORT_ADDED,
+      ({ unsubscribe } = toolGroupService.subscribe(
+        toolGroupService.EVENTS.VIEWPORT_ADDED,
         activateTool
       ));
 
-      ToolBarService.init(extensionManager);
-      ToolBarService.addButtons(toolbarButtons);
-      ToolBarService.createButtonSection('primary', [
+      toolbarService.init(extensionManager);
+      toolbarService.addButtons(toolbarButtons);
+      toolbarService.createButtonSection('primary', [
         'MeasurementTools',
         'Zoom',
         'WindowLevel',
@@ -125,21 +128,45 @@ function modeFactory() {
         'Crosshairs',
         'MoreTools',
       ]);
+
+      // // ActivatePanel event trigger for when a segmentation or measurement is added.
+      // // Do not force activation so as to respect the state the user may have left the UI in.
+      // _activatePanelTriggersSubscriptions = [
+      //   ...panelService.addActivatePanelTriggers(dicomSeg.panel, [
+      //     {
+      //       sourcePubSubService: segmentationService,
+      //       sourceEvents: [
+      //         segmentationService.EVENTS.SEGMENTATION_PIXEL_DATA_CREATED,
+      //       ],
+      //     },
+      //   ]),
+      //   ...panelService.addActivatePanelTriggers(tracked.measurements, [
+      //     {
+      //       sourcePubSubService: measurementService,
+      //       sourceEvents: [
+      //         measurementService.EVENTS.MEASUREMENT_ADDED,
+      //         measurementService.EVENTS.RAW_MEASUREMENT_ADDED,
+      //       ],
+      //     },
+      //   ]),
+      // ];
     },
     onModeExit: ({ servicesManager }) => {
       const {
-        ToolGroupService,
-        SyncGroupService,
-        ToolBarService,
-        SegmentationService,
-        CornerstoneViewportService,
+        toolGroupService,
+        syncGroupService,
+        toolbarService,
+        segmentationService,
+        cornerstoneViewportService,
       } = servicesManager.services;
 
-      ToolBarService.reset();
-      ToolGroupService.destroy();
-      SyncGroupService.destroy();
-      SegmentationService.destroy();
-      CornerstoneViewportService.destroy();
+      _activatePanelTriggersSubscriptions.forEach(sub => sub.unsubscribe());
+      _activatePanelTriggersSubscriptions = [];
+
+      toolGroupService.destroy();
+      syncGroupService.destroy();
+      segmentationService.destroy();
+      cornerstoneViewportService.destroy();
     },
     validationTags: {
       study: [],
@@ -171,8 +198,8 @@ function modeFactory() {
             id: ohif.layout,
             props: {
               leftPanels: [tracked.thumbnailList],
-              rightPanels: [dicomSeg.panel, tracked.measurements, test.panel],
-              // rightPanelDefaultClosed: true, // optional prop to start with collapse panels
+              rightPanels: [dicomSeg.panel, tracked.measurements],
+              rightPanelDefaultClosed: true,
               viewports: [
                 {
                   namespace: tracked.viewport,

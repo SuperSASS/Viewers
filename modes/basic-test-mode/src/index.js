@@ -54,6 +54,7 @@ const extensionDependencies = {
   '@ohif/extension-cornerstone-dicom-seg': '^3.0.0',
   '@ohif/extension-dicom-pdf': '^3.0.1',
   '@ohif/extension-dicom-video': '^3.0.1',
+  '@ohif/extension-test': '^0.0.1',
 };
 
 function modeFactory() {
@@ -68,20 +69,26 @@ function modeFactory() {
      */
     onModeEnter: ({ servicesManager, extensionManager, commandsManager }) => {
       const {
-        MeasurementService,
-        ToolBarService,
-        ToolGroupService,
+        measurementService,
+        toolbarService,
+        toolGroupService,
+        customizationService,
       } = servicesManager.services;
 
-      MeasurementService.clearMeasurements();
+      measurementService.clearMeasurements();
 
       // Init Default and SR ToolGroups
-      initToolGroups(extensionManager, ToolGroupService, commandsManager);
+      initToolGroups(extensionManager, toolGroupService, commandsManager);
+
+      // init customizations
+      customizationService.addModeCustomizations([
+        '@ohif/extension-test.customizationModule.custom-context-menu',
+      ]);
 
       let unsubscribe;
 
       const activateTool = () => {
-        ToolBarService.recordInteraction({
+        toolbarService.recordInteraction({
           groupId: 'WindowLevel',
           itemId: 'WindowLevel',
           interactionType: 'tool',
@@ -103,14 +110,14 @@ function modeFactory() {
 
       // Since we only have one viewport for the basic cs3d mode and it has
       // only one hanging protocol, we can just use the first viewport
-      ({ unsubscribe } = ToolGroupService.subscribe(
-        ToolGroupService.EVENTS.VIEWPORT_ADDED,
+      ({ unsubscribe } = toolGroupService.subscribe(
+        toolGroupService.EVENTS.VIEWPORT_ADDED,
         activateTool
       ));
 
-      ToolBarService.init(extensionManager);
-      ToolBarService.addButtons(toolbarButtons);
-      ToolBarService.createButtonSection('primary', [
+      toolbarService.init(extensionManager);
+      toolbarService.addButtons(toolbarButtons);
+      toolbarService.createButtonSection('primary', [
         'MeasurementTools',
         'Zoom',
         'WindowLevel',
@@ -124,18 +131,17 @@ function modeFactory() {
     },
     onModeExit: ({ servicesManager }) => {
       const {
-        ToolGroupService,
-        SyncGroupService,
-        ToolBarService,
-        SegmentationService,
-        CornerstoneViewportService,
+        toolGroupService,
+        syncGroupService,
+        toolbarService,
+        segmentationService,
+        cornerstoneViewportService,
       } = servicesManager.services;
 
-      ToolBarService.reset();
-      ToolGroupService.destroy();
-      SyncGroupService.destroy();
-      SegmentationService.destroy();
-      CornerstoneViewportService.destroy();
+      toolGroupService.destroy();
+      syncGroupService.destroy();
+      segmentationService.destroy();
+      cornerstoneViewportService.destroy();
     },
     validationTags: {
       study: [],
@@ -204,7 +210,12 @@ function modeFactory() {
       dicompdf.sopClassHandler,
       dicomsr.sopClassHandler,
     ],
-    hotkeys: [...hotkeys.defaults.hotkeyBindings],
+    hotkeys: {
+      // Don't store the hotkeys for basic-test-mode under the same key
+      // because they get customized by tests
+      name: 'basic-test-hotkeys',
+      hotkeys: [...hotkeys.defaults.hotkeyBindings],
+    },
   };
 }
 

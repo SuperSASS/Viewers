@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { utils, ServicesManager } from '@ohif/core';
 import { MeasurementTable, Dialog, Input, useViewportGrid } from '@ohif/ui';
 import ActionButtons from './ActionButtons';
 import debounce from 'lodash.debounce';
 
-import { utils } from '@ohif/core';
 import createReportDialogPrompt, {
   CREATE_REPORT_DIALOG_RESPONSE,
 } from './createReportDialogPrompt';
 import createReportAsync from '../Actions/createReportAsync';
-import getNextSRSeriesNumber from '../utils/getNextSRSeriesNumber';
+import findSRWithSameSeriesDescription from '../utils/findSRWithSameSeriesDescription';
 
 const { downloadCSVReport } = utils;
 
@@ -17,15 +17,15 @@ export default function PanelMeasurementTable({
   servicesManager,
   commandsManager,
   extensionManager,
-}) {
+}): React.FunctionComponent {
   const [viewportGrid, viewportGridService] = useViewportGrid();
   const { activeViewportIndex, viewports } = viewportGrid;
   const {
-    MeasurementService,
-    UIDialogService,
-    UINotificationService,
-    DisplaySetService,
-  } = servicesManager.services;
+    measurementService,
+    uiDialogService,
+    uiNotificationService,
+    displaySetService,
+  } = (servicesManager as ServicesManager).services;
   const [displayMeasurements, setDisplayMeasurements] = useState([]);
 
   useEffect(() => {
@@ -34,21 +34,21 @@ export default function PanelMeasurementTable({
       100
     );
     // ~~ Initial
-    setDisplayMeasurements(_getMappedMeasurements(MeasurementService));
+    setDisplayMeasurements(_getMappedMeasurements(measurementService));
 
     // ~~ Subscription
-    const added = MeasurementService.EVENTS.MEASUREMENT_ADDED;
-    const addedRaw = MeasurementService.EVENTS.RAW_MEASUREMENT_ADDED;
-    const updated = MeasurementService.EVENTS.MEASUREMENT_UPDATED;
-    const removed = MeasurementService.EVENTS.MEASUREMENT_REMOVED;
-    const cleared = MeasurementService.EVENTS.MEASUREMENTS_CLEARED;
+    const added = measurementService.EVENTS.MEASUREMENT_ADDED;
+    const addedRaw = measurementService.EVENTS.RAW_MEASUREMENT_ADDED;
+    const updated = measurementService.EVENTS.MEASUREMENT_UPDATED;
+    const removed = measurementService.EVENTS.MEASUREMENT_REMOVED;
+    const cleared = measurementService.EVENTS.MEASUREMENTS_CLEARED;
     const subscriptions = [];
 
     [added, addedRaw, updated, removed, cleared].forEach(evt => {
       subscriptions.push(
-        MeasurementService.subscribe(evt, () => {
+        measurementService.subscribe(evt, () => {
           debouncedSetDisplayMeasurements(
-            _getMappedMeasurements(MeasurementService)
+            _getMappedMeasurements(measurementService)
           );
         }).unsubscribe
       );
@@ -63,20 +63,20 @@ export default function PanelMeasurementTable({
   }, []);
 
   async function exportReport() {
-    const measurements = MeasurementService.getMeasurements();
+    const measurements = measurementService.getMeasurements();
 
-    downloadCSVReport(measurements, MeasurementService);
+    downloadCSVReport(measurements, measurementService);
   }
 
   async function clearMeasurements() {
-    MeasurementService.clearMeasurements();
+    measurementService.clearMeasurements();
   }
 
-  async function createReport() {
+  async function createReport(): Promise<any> {
     // filter measurements that are added to the active study
     const activeViewport = viewports[activeViewportIndex];
-    const measurements = MeasurementService.getMeasurements();
-    const displaySet = DisplaySetService.getDisplaySetByUID(
+    const measurements = measurementService.getMeasurements();
+    const displaySet = displaySetService.getDisplaySetByUID(
       activeViewport.displaySetInstanceUIDs[0]
     );
     const trackedMeasurements = measurements.filter(
@@ -84,7 +84,7 @@ export default function PanelMeasurementTable({
     );
 
     if (trackedMeasurements.length <= 0) {
-      UINotificationService.show({
+      uiNotificationService.show({
         title: 'No Measurements',
         message: 'No Measurements are added to the current Study.',
         type: 'info',
@@ -93,7 +93,7 @@ export default function PanelMeasurementTable({
       return;
     }
 
-    const promptResult = await createReportDialogPrompt(UIDialogService, {
+    const promptResult = await createReportDialogPrompt(uiDialogService, {
       extensionManager,
     });
 
@@ -109,36 +109,38 @@ export default function PanelMeasurementTable({
           ? 'Research Derived Series' // default
           : promptResult.value; // provided value
 
-      const SeriesNumber = getNextSRSeriesNumber(DisplaySetService);
+      // Re-use an existing series having the same series description to avoid
+      // creating too many series instances.
+      const options = findSRWithSameSeriesDescription(
+        SeriesDescription,
+        displaySetService
+      );
 
-      const displaySetInstanceUIDs = await createReportAsync(
+      return createReportAsync(
         servicesManager,
         commandsManager,
         dataSource,
         trackedMeasurements,
-        {
-          SeriesDescription,
-          SeriesNumber,
-        }
+        options
       );
     }
   }
 
   const jumpToImage = ({ uid, isActive }) => {
-    MeasurementService.jumpToMeasurement(viewportGrid.activeViewportIndex, uid);
+    measurementService.jumpToMeasurement(viewportGrid.activeViewportIndex, uid);
 
     onMeasurementItemClickHandler({ uid, isActive });
   };
 
   const onMeasurementItemEditHandler = ({ uid, isActive }) => {
-    const measurement = MeasurementService.getMeasurement(uid);
+    const measurement = measurementService.getMeasurement(uid);
     //Todo: why we are jumping to image?
     // jumpToImage({ id, isActive });
 
     const onSubmitHandler = ({ action, value }) => {
       switch (action.id) {
         case 'save': {
-          MeasurementService.update(
+          measurementService.update(
             uid,
             {
               ...measurement,
@@ -148,10 +150,10 @@ export default function PanelMeasurementTable({
           );
         }
       }
-      UIDialogService.dismiss({ id: 'enter-annotation' });
+      uiDialogService.dismiss({ id: 'enter-annotation' });
     };
 
-    UIDialogService.create({
+    uiDialogService.create({
       id: 'enter-annotation',
       centralize: true,
       isDraggable: false,
@@ -176,6 +178,7 @@ export default function PanelMeasurementTable({
             <div className="p-4 bg-primary-dark">
               <Input
                 autoFocus
+                id="annotation"
                 className="mt-2 bg-black border-primary-main"
                 type="text"
                 containerClassName="mr-2"
@@ -215,6 +218,7 @@ export default function PanelMeasurementTable({
       >
         <MeasurementTable
           title="Measurements"
+          servicesManager={servicesManager}
           data={displayMeasurements}
           onClick={jumpToImage}
           onEdit={onMeasurementItemEditHandler}
@@ -232,36 +236,59 @@ export default function PanelMeasurementTable({
 }
 
 PanelMeasurementTable.propTypes = {
-  servicesManager: PropTypes.shape({
-    services: PropTypes.shape({
-      MeasurementService: PropTypes.shape({
-        getMeasurements: PropTypes.func.isRequired,
-        subscribe: PropTypes.func.isRequired,
-        EVENTS: PropTypes.object.isRequired,
-        VALUE_TYPES: PropTypes.object.isRequired,
-      }).isRequired,
-    }).isRequired,
-  }).isRequired,
+  servicesManager: PropTypes.instanceOf(ServicesManager).isRequired,
 };
 
-function _getMappedMeasurements(MeasurementService) {
-  const measurements = MeasurementService.getMeasurements();
+function _getMappedMeasurements(measurementService) {
+  const measurements = measurementService.getMeasurements();
 
   const mappedMeasurements = measurements.map((m, index) =>
-    _mapMeasurementToDisplay(m, index, MeasurementService.VALUE_TYPES)
+    _mapMeasurementToDisplay(m, index, measurementService.VALUE_TYPES)
   );
 
   return mappedMeasurements;
 }
 
+/**
+ * Map the measurements to the display text.
+ * Adds finding and site inforamtion to the displayText and/or label,
+ * and provides as 'displayText' and 'label', while providing the original
+ * values as baseDisplayText and baseLabel
+ */
 function _mapMeasurementToDisplay(measurement, index, types) {
-  const { displayText, uid, label, type, selected } = measurement;
+  const {
+    displayText: baseDisplayText,
+    uid,
+    label: baseLabel,
+    type,
+    selected,
+    findingSites,
+    finding,
+  } = measurement;
+
+  const firstSite = findingSites?.[0];
+  const label = baseLabel || finding?.text || firstSite?.text || '(empty)';
+  let displayText = baseDisplayText || [];
+  if (findingSites) {
+    const siteText = [];
+    findingSites.forEach(site => {
+      if (site?.text !== label) siteText.push(site.text);
+    });
+    displayText = [...siteText, ...displayText];
+  }
+  if (finding && finding?.text !== label) {
+    displayText = [finding.text, ...displayText];
+  }
 
   return {
     uid,
-    label: label || '(empty)',
+    label,
+    baseLabel,
     measurementType: type,
-    displayText: displayText || [],
+    displayText,
+    baseDisplayText,
     isActive: selected,
+    finding,
+    findingSites,
   };
 }
