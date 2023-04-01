@@ -12,6 +12,8 @@ import { useAppConfig } from '@state';
 import { useDebounce, useSearchParams } from '@hooks';
 import { utils, hotkeys } from '@ohif/core';
 
+import uploadFile from "../../../../../devs/utils/uploadFileHandler";
+
 import {
   Icon,
   StudyListExpandedRow,
@@ -429,6 +431,8 @@ function WorkList({
     });
   }
 
+
+
   return (
     <div className="bg-black h-screen flex flex-col ">
       <Header
@@ -436,6 +440,7 @@ function WorkList({
         menuOptions={menuOptions}
         isReturnEnabled={false}
         WhiteLabeling={appConfig.whiteLabeling}
+        onUpload={uploadFile}
       />
       <div className="overflow-y-auto ohif-scrollbar">
         <StudyListFilter

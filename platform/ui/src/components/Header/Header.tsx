@@ -12,6 +12,7 @@ function Header({
   onClickReturnButton,
   isSticky,
   WhiteLabeling,
+  onUpload,
   ...props
 }): ReactNode {
   const { t } = useTranslation('Header');
@@ -52,8 +53,9 @@ function Header({
         </div>
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
-          <Button variant="outlined" rounded="full" startIcon={getIcon("upload")} size="special" className="mr-3 text-lg text-common-light">
-            <Icon name="upload" color="inherit" className="w-8 h-8"></Icon>
+          <input type="file" name="filename" id="fileInput" multiple className="invisible" />
+          <Button onClick={onUpload} variant="outlined" rounded="full" size="special" className="mr-3 text-lg text-common-light">
+            <Icon name="upload" className="stroke-current w-8 h-8"></Icon>
           </Button>
           <span className="mr-3 text-lg text-common-light">
             {t('INVESTIGATIONAL USE ONLY')}
@@ -80,7 +82,7 @@ function Header({
           </Dropdown>
         </div>
       </div>
-    </NavBar>
+    </NavBar >
   );
 }
 
