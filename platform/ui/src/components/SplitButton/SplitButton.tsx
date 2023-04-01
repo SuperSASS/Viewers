@@ -25,8 +25,8 @@ const classes = {
     classNames(
       baseClasses.Button,
       !isExpanded &&
-        !primary.isActive &&
-        'hover:!bg-primary-dark hover:border-primary-dark'
+      !primary.isActive &&
+      'hover:!bg-primary-dark hover:border-primary-dark'
     ),
   Interface: 'h-full flex flex-row items-center',
   Primary: ({ primary, isExpanded }) =>
@@ -35,17 +35,15 @@ const classes = {
       primary.isActive
         ? isExpanded
           ? 'border-primary-dark !bg-primary-dark hover:border-primary-dark !text-primary-light'
-          : `${
-              primary.isToggle
-                ? 'border-secondary-dark bg-secondary-light'
-                : 'border-primary-light bg-primary-light'
-            }
+          : `${primary.isToggle
+            ? 'border-secondary-dark bg-secondary-light'
+            : 'border-primary-light bg-primary-light'
+          }
             border-2 rounded-md !p-2` // Full, rounded border with less right padding when active.
         : `focus:!text-black focus:!rounded-md focus:!border-primary-light focus:!bg-primary-light
-        ${
-          isExpanded
-            ? 'border-primary-dark bg-primary-dark !text-primary-light'
-            : 'border-secondary-dark bg-secondary-dark group-hover/button:border-primary-dark group-hover/button:text-primary-light hover:!bg-primary-dark hover:border-primary-dark focus:!text-black'
+        ${isExpanded
+          ? 'border-primary-dark bg-primary-dark !text-primary-light'
+          : 'border-secondary-dark bg-secondary-dark group-hover/button:border-primary-dark group-hover/button:text-primary-light hover:!bg-primary-dark hover:border-primary-dark focus:!text-black'
         }
         `
     ),
@@ -55,8 +53,8 @@ const classes = {
       isExpanded
         ? 'bg-primary-light !rounded-tr-md !rounded-br-md'
         : primary.isActive
-        ? 'bg-secondary-dark'
-        : 'hover:bg-primary-dark bg-secondary-dark group-hover/button:border-primary-dark'
+          ? 'bg-secondary-dark'
+          : 'hover:bg-primary-dark bg-secondary-dark group-hover/button:border-primary-dark'
     ),
   SecondaryIcon: ({ isExpanded }) =>
     classNames(

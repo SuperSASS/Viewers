@@ -55,8 +55,11 @@ function Header({
         <div className="flex items-center">
           <input type="file" name="filename" id="fileInput" multiple className="invisible" />
           <Button onClick={onUpload} variant="outlined" rounded="full" size="special" className="mr-3 text-lg text-common-light">
-            <Icon name="upload" className="stroke-current w-8 h-8"></Icon>
+            <Icon name="upload" className="stroke-current w-8 h-8 mr-auto ml-2"></Icon>
+
+            <div className='mr-2'>上传影像</div>
           </Button>
+          <div className='border-l py-2.5 mr-3 h-full' />
           <span className="mr-3 text-lg text-common-light">
             {t('INVESTIGATIONAL USE ONLY')}
           </span>
