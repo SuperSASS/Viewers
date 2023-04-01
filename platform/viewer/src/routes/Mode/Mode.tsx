@@ -3,11 +3,12 @@ import { useParams, useLocation } from 'react-router';
 
 import PropTypes from 'prop-types';
 // TODO: DicomMetadataStore should be injected?
-import { DicomMetadataStore } from '@ohif/core';
+import { DicomMetadataStore, ServicesManager } from '@ohif/core';
 import { DragAndDropProvider, ImageViewerProvider } from '@ohif/ui';
-import { useQuery } from '@hooks';
+import { useQuery, useSearchParams } from '@hooks';
 import ViewportGrid from '@components/ViewportGrid';
 import Compose from './Compose';
+import getStudies from './studiesList';
 
 /**
  * Initialize the route.
@@ -24,11 +25,11 @@ import Compose from './Compose';
  */
 function defaultRouteInit(
   { servicesManager, studyInstanceUIDs, dataSource, filters },
-  hangingProtocol
+  hangingProtocolId
 ) {
   const {
-    DisplaySetService,
-    HangingProtocolService,
+    displaySetService,
+    hangingProtocolService,
   } = servicesManager.services;
 
   // 添加订阅，当加载好Series的所有Instance后触发，然后生成对应的DisplaySet
@@ -43,7 +44,7 @@ function defaultRouteInit(
         SeriesInstanceUID
       );
 
-      DisplaySetService.makeDisplaySets(seriesMetadata.instances, madeInClient);
+      displaySetService.makeDisplaySets(seriesMetadata.instances, madeInClient);
     }
   );
 
@@ -64,39 +65,24 @@ function defaultRouteInit(
   // until we run the hanging protocol matching service.
   // 3. Promise实现，生成Studies（注意是Study研究级别的数组），run挂片协议【但暂时还是不了解这个run……
   Promise.allSettled(allRetrieves).then(() => {
-    const displaySets = DisplaySetService.getActiveDisplaySets();
+    const displaySets = displaySetService.getActiveDisplaySets();
 
     if (!displaySets || !displaySets.length) {
       return;
     }
 
-    const studyMap = {};
+    // Gets the studies list to use
+    const studies = getStudies(studyInstanceUIDs, displaySets);
 
-    // Prior studies don't quite work properly yet, but the studies list
-    // is at least being generated and passed in.
-    // 这里可能是去重操作：先从当前项获得StudyUID，然后判断是否在Map（重复列表）里，不在就getStudy后加进临时数组prev里；在就跳过
-    // 重新猜测：应该是根据当前的displaySets，得到一个Study列表（对于所有display项，只有StudyUID不同的才能加进去）
-    // 但一般来说，一次只能打开一个Study（除非用All，到时候再看），所以一般最后studies只有一个
-    const studies = displaySets.reduce((prev, curr) => {
-      const { StudyInstanceUID } = curr;
-      if (!studyMap[StudyInstanceUID]) {
-        const study = DicomMetadataStore.getStudy(StudyInstanceUID);
-        studyMap[StudyInstanceUID] = study;
-        prev.push(study);
-      }
-      return prev;
-    }, []);
-
-    // The assumption is that the display set at position 0 is the first
     // study being displayed, and is thus the "active" study.
     const activeStudy = studies[0]; // 应当是选择默认激活的study为studies的第一个
 
     // run the hanging protocol matching on the displaySets with the predefined
     // hanging protocol in the mode configuration
     // run起来了！！！……
-    HangingProtocolService.run(
+    hangingProtocolService.run(
       { studies, activeStudy, displaySets },
-      hangingProtocol
+      hangingProtocolId
     );
   });
 
@@ -115,7 +101,9 @@ export default function ModeRoute({
   const location = useLocation();
   const query = useQuery(); // 指的是URL中的query参数（?后面的）
   const params = useParams(); // 指的应该是
+  const searchParams = useSearchParams();
 
+  const runTimeHangingProtocolId = searchParams.get('hangingprotocolid');
   const [studyInstanceUIDs, setStudyInstanceUIDs] = useState();
 
   const [refresh, setRefresh] = useState(false);
@@ -129,11 +117,19 @@ export default function ModeRoute({
   }
 
   const {
-    DisplaySetService,
-    HangingProtocolService: hangingProtocolService,
-  } = servicesManager.services;
+    displaySetService,
+    hangingProtocolService,
+  } = (servicesManager as ServicesManager).services;
 
-  const { extensions, sopClassHandlers, hotkeys, hangingProtocol } = mode;
+  const {
+    extensions,
+    sopClassHandlers,
+    hotkeys: hotkeyObj,
+    hangingProtocol,
+  } = mode;
+  // Preserve the old array interface for hotkeys
+  const hotkeys = Array.isArray(hotkeyObj) ? hotkeyObj : hotkeyObj?.hotkeys;
+  const hotkeyName = hotkeyObj?.name || 'hotkey-definitions-v2';
 
   if (dataSourceName === undefined) {
     dataSourceName = extensionManager.defaultDataSourceName;
@@ -141,10 +137,9 @@ export default function ModeRoute({
 
   extensionManager.setActiveDataSource(dataSourceName);
 
-  const dataSources = extensionManager.getActiveDataSource();
+  // 这也是只处理第一个数据源
+  const dataSource = extensionManager.getActiveDataSource()[0];
 
-  // Only handling one instance of the datasource type (E.g. one DICOMWeb server) // 这也是只处理第一个数据源
-  const dataSource = dataSources[0];
   // Only handling one route per mode for now - 现在一个mode只负责一个route？那在mode定义的时候数组只能有一个元素了
   const route = mode.routes[0];
 
@@ -230,14 +225,12 @@ export default function ModeRoute({
 
     hotkeysManager.setDefaultHotKeys(hotkeys);
 
-    const userPreferredHotkeys = JSON.parse(
-      localStorage.getItem('hotkey-definitions')
-    );
+    const userPreferredHotkeys = JSON.parse(localStorage.getItem(hotkeyName));
 
     if (userPreferredHotkeys?.length) {
-      hotkeysManager.setHotkeys(userPreferredHotkeys);
+      hotkeysManager.setHotkeys(userPreferredHotkeys, hotkeyName);
     } else {
-      hotkeysManager.setHotkeys(hotkeys);
+      hotkeysManager.setHotkeys(hotkeys, hotkeyName);
     }
 
     return () => {
@@ -263,29 +256,43 @@ export default function ModeRoute({
     // Extension
 
     // Add SOPClassHandlers to a new SOPClassManager.
-    DisplaySetService.init(extensionManager, sopClassHandlers);
+    displaySetService.init(extensionManager, sopClassHandlers);
 
     extensionManager.onModeEnter({
       servicesManager,
       extensionManager,
       commandsManager,
     });
+
+    // use the URL hangingProtocolId if it exists, otherwise use the one
+    // defined in the mode configuration
+    const hangingProtocolIdToUse = hangingProtocolService.getProtocolById(
+      runTimeHangingProtocolId
+    )
+      ? runTimeHangingProtocolId
+      : hangingProtocol;
+
     // Sets the active hanging protocols - if hangingProtocol is undefined,
     // resets to default.  Done before the onModeEnter to allow the onModeEnter
     // to perform custom hanging protocol actions
-    hangingProtocolService.setActiveProtocols(hangingProtocol);
-    mode?.onModeEnter({ servicesManager, extensionManager, commandsManager });
+    hangingProtocolService.setActiveProtocolIds(hangingProtocolIdToUse);
+
+    mode?.onModeEnter({
+      servicesManager,
+      extensionManager,
+      commandsManager,
+    });
 
     const setupRouteInit = async () => {
       /**
        * The next line should get all the query parameters provided by the URL
-       * - except the StudyInstaceUIDs - and create an object called filters
+       * - except the StudyInstanceUIDs - and create an object called filters
        * used to filtering the study as the user wants otherwise it will return
        * a empty object.
        *
        * Example:
        * const filters = {
-       *   seriesInstaceUID: 1.2.276.0.7230010.3.1.3.1791068887.5412.1620253993.114611
+       *   seriesInstanceUID: 1.2.276.0.7230010.3.1.3.1791068887.5412.1620253993.114611
        * }
        */
       const filters =
@@ -293,7 +300,10 @@ export default function ModeRoute({
           (acc: Record<string, string>, val: string) => {
             if (val !== 'StudyInstanceUIDs') {
               if (['seriesInstanceUID', 'SeriesInstanceUID'].includes(val)) {
-                return { ...acc, seriesInstanceUID: query.get(val) };
+                return {
+                  ...acc,
+                  seriesInstanceUID: query.get(val),
+                };
               }
 
               return { ...acc, [val]: query.get(val) };
@@ -312,7 +322,7 @@ export default function ModeRoute({
             dataSource,
             filters,
           },
-          hangingProtocol
+          hangingProtocolIdToUse
         );
       }
 
@@ -323,7 +333,7 @@ export default function ModeRoute({
           dataSource,
           filters,
         },
-        hangingProtocol
+        hangingProtocolIdToUse
       );
     };
 
@@ -337,7 +347,10 @@ export default function ModeRoute({
       // information, and must be in a try/catch to ensure subscriptions
       // are unsubscribed.
       try {
-        mode?.onModeExit?.({ servicesManager, extensionManager });
+        mode?.onModeExit?.({
+          servicesManager,
+          extensionManager,
+        });
       } catch (e) {
         console.warn('mode exit failure', e);
       }
