@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import { NavBar, Svg, Icon, IconButton, Dropdown, Button } from '../';
 
+/// {大量修改：直接给Header添加了按钮、用来上传（通过onUpload和onSelect实现）
+
 function Header({
   children,
   menuOptions,
@@ -54,9 +56,9 @@ function Header({
         <div className="flex items-center">{children}</div>
         <div className="flex items-center">
           <input type="file" name="filename" id="fileInput" multiple onChange={onUpload} className="invisible" />
+          {/* /// *直接添加语句：这直接加的Button */}
           <Button onClick={onSelect} variant="outlined" rounded="full" size="special" className="mr-3 text-lg text-common-light">
             <Icon name="upload" className="stroke-current w-8 h-8 mr-auto ml-2"></Icon>
-
             <div className='mr-2'>上传影像</div>
           </Button>
           <div className='border-l py-2.5 mr-3 h-full' />

@@ -432,9 +432,10 @@ function WorkList({
   }
 
 
-
+  /// *直接添加语句：添加了Header的回调onUpload和onSelect
   return (
     <div className="bg-black h-screen flex flex-col ">
+      {/* 在这里添加了Header中上传按钮的的回调函数 */}
       <Header
         isSticky
         menuOptions={menuOptions}

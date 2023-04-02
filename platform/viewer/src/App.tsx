@@ -29,6 +29,8 @@ import createRoutes from './routes';
 import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
 
+import { ToastContainer } from 'react-toastify';
+
 let commandsManager: CommandsManager,
   extensionManager: ExtensionManager,
   servicesManager: ServicesManager,
@@ -125,6 +127,7 @@ function App({ config, defaultExtensions, defaultModes }) {
         {authRoutes}
         {appRoutes}
       </BrowserRouter>
+      <ToastContainer />
     </CombinedProviders>
   );
 }
