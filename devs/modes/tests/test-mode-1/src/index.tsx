@@ -3,7 +3,7 @@ import { hotkeys } from '@ohif/core';
 import initToolGroups from './initToopGroup';
 import toolbarButtons from './toolbarButtons';
 
-const layoutTemplate = {
+const layoutTemplates = {
   default: '@ohif/extension-default.layoutTemplateModule.viewerLayout',
 };
 
@@ -14,24 +14,24 @@ const leftPanels = {
 
 const rightPanels = {
   measure: '@ohif/extension-default.panelModule.measure',
-  test: 'test-extension-1.panelModule.panelSegmentation'
+  segment: 'test-extension-1.panelModule.panelSegmentation'
 }
 
 
-const viewport = {
+const viewports = {
   cornerstone: '@ohif/extension-cornerstone.viewportModule.cornerstone',
   measurement: '@ohif/extension-measurement-tracking.viewportModule.cornerstone-tracked',
   dicomSeg: "@ohif/extension-cornerstone-dicom-seg.viewportModule.dicom-seg",
   // dicompdf: '@ohif/extension-dicom-pdf.viewportModule.dicom-pdf',
 }
 
-const sopClassHandler = {
+const sopClassHandlers = {
   default: '@ohif/extension-default.sopClassHandlerModule.stack',
   dicomSeg: "@ohif/extension-cornerstone-dicom-seg.sopClassHandlerModule.dicom-seg",
   // dicompdf: '@ohif/extension-dicom-pdf.sopClassHandlerModule.dicom-pdf',
 }
 
-const hangingProtocol = {
+const hangingProtocols = {
   ohif_default: '@ohif/extension-default.hangingProtocolModule.default',
   CocketBoat_default: "test-extension-1.hangingProtocolModule.CocketBoat_default",
   mpr: '@ohif/extension-cornerstone.hangingProtocolModule.mpr',
@@ -54,17 +54,9 @@ const extensionDependencies = {
 let unsubscriptions = [] as any[];
 function modeFactory({ modeConfiguration }) {
   return {
-    /**
-     * Mode ID, which should be unique among modes used by the viewer. This ID
-     * is used to identify the mode in the viewer's state.
-     */
     id,
-    routeName: 'template',
-    /**
-     * Mode name, which is displayed in the viewer's UI in the workList, for the
-     * user to select the mode.
-     */
-    displayName: '测试模式',
+    routeName: 'cocketboat_viewer',
+    displayName: '查看该影像',
 
     onModeEnter: ({ servicesManager, extensionManager, commandsManager }) => {
       const {
@@ -132,66 +124,41 @@ function modeFactory({ modeConfiguration }) {
       segmentationService.destroy();
       cornerstoneViewportService.destroy();
     },
+
     validationTags: {
       study: [],
       series: [],
     },
 
-
     isValidMode: ({ modalities }) => true,
-    /**
-     * Mode Routes are used to define the mode's behavior. A list of Mode Route
-     * that includes the mode's path and the layout to be used. The layout will
-     * include the components that are used in the layout. For instance, if the
-     * default layoutTemplate is used (id: '@ohif/extension-default.layoutTemplateModule.viewerLayout')
-     * it will include the leftPanels, rightPanels, and viewports. However, if
-     * you define another layoutTemplate that includes a Footer for instance,
-     * you should provide the Footer component here too. Note: We use Strings
-     * to reference the component's ID as they are registered in the internal
-     * ExtensionManager. The template for the string is:
-     * `${extensionId}.{moduleType}.${componentId}`.
-     */
+
     routes: [
       {
-        path: 'template',
+        path: 'cocketboat_viewer',
         layoutTemplate: ({ location, servicesManager }) => {
           return {
-            id: layoutTemplate.default,
+            id: layoutTemplates.default,
             props: {
               leftPanels: [leftPanels.measurement],
-              rightPanels: [rightPanels.measure, rightPanels.test],
-              viewports: [ // 仅申明，并绑定与Handler的联系
+              rightPanels: [rightPanels.measure, rightPanels.segment],
+              viewports: [
                 {
-                  namespace: viewport.measurement,
-                  // namespace: viewport.cornerstone,
-                  displaySetsToDisplay: [sopClassHandler.default],
+                  namespace: viewports.measurement,
+                  displaySetsToDisplay: [sopClassHandlers.default],
                 },
                 {
-                  namespace: viewport.dicomSeg,
-                  displaySetsToDisplay: [sopClassHandler.dicomSeg],
+                  namespace: viewports.dicomSeg,
+                  displaySetsToDisplay: [sopClassHandlers.dicomSeg],
                 },
-                // {
-                //   namespace: dicompdf.viewport,
-                //   displaySetsToDisplay: [ohif.sopClassHandler, dicompdf.sopClassHandler],
-                // },
               ],
             },
           };
         },
       },
     ],
-    /** List of extensions that are used by the mode */
     extensions: extensionDependencies,
-    /** HangingProtocol used by the mode */
-    // hangingProtocol: [''],
-    // hangingProtocol: ['CocketBoat_default'], // 申明挂片协议，并具体定义viewports
     hangingProtocol: ['default'],
-    /** SopClassHandlers used by the mode */
-    sopClassHandlers: [
-      sopClassHandler.default,
-      sopClassHandler.dicomSeg,
-    ], // 这应该是决定每个DisplaySet的Handler来源（只能从这里面选，具体怎么选的再探究）
-    /** hotkeys for mode */
+    sopClassHandlers: [sopClassHandlers.default, sopClassHandlers.dicomSeg],
     hotkeys: [...hotkeys.defaults.hotkeyBindings],
   };
 }
