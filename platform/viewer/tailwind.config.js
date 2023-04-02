@@ -49,7 +49,7 @@ module.exports = {
       secondary: {
         light: '#3a3f99',
         main: '#2b166b',
-        dark: '#041c4a',
+        dark: '#041c4a', // 标题栏的颜色
         active: '#1f1f27',
       },
 

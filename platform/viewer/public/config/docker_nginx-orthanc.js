@@ -1,6 +1,26 @@
 window.config = {
   routerBasename: '/',
   showStudyList: true,
+  whiteLabeling: {
+    /* Optional: Should return a React component to be rendered in the "Logo" section of the application's Top Navigation bar */
+    createLogoComponentFn: function (React) {
+      return React.createElement(
+        'a',
+        {
+          target: '_self',
+          rel: 'noopener noreferrer',
+          className: 'flex items-center text-white line-through',
+          href: '/',
+        },
+        React.createElement('img',
+          {
+            src: './customLogo.svg',
+            className: 'w-8 h-8 mt-1 mb-1 mr-5',
+          },
+        ),
+        React.createElement('h5', { className: 'text-l' }, "CocketBoat 医疗影像平台"))
+    },
+  },
   extensions: [],
   modes: [],
   // below flag is for performance reasons, but it might not work for all servers

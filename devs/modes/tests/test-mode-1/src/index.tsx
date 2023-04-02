@@ -1,4 +1,5 @@
 import { id } from './id';
+import { hotkeys } from '@ohif/core';
 import initToolGroups from './initToopGroup';
 import toolbarButtons from './toolbarButtons';
 
@@ -47,6 +48,7 @@ const extensionDependencies = {
   '@ohif/extension-default': '^3.0.0',
   '@ohif/extension-cornerstone': '^3.0.0',
   '@ohif/extension-measurement-tracking': '^3.0.0',
+  '@ohif/extension-cornerstone-dicom-seg': '^3.0.0',
 };
 
 let unsubscriptions = [] as any[];
@@ -156,7 +158,7 @@ function modeFactory({ modeConfiguration }) {
           return {
             id: layoutTemplate.default,
             props: {
-              leftPanels: [leftPanels.default],
+              leftPanels: [leftPanels.measurement],
               rightPanels: [rightPanels.measure, rightPanels.test],
               viewports: [ // 仅申明，并绑定与Handler的联系
                 {
@@ -190,7 +192,7 @@ function modeFactory({ modeConfiguration }) {
       sopClassHandler.dicomSeg,
     ], // 这应该是决定每个DisplaySet的Handler来源（只能从这里面选，具体怎么选的再探究）
     /** hotkeys for mode */
-    hotkeys: [''],
+    hotkeys: [...hotkeys.defaults.hotkeyBindings],
   };
 }
 

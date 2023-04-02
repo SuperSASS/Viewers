@@ -18,7 +18,7 @@ function getPanelModule({
       name: 'seriesList',
       iconName: 'group-layers',
       iconLabel: 'Studies',
-      label: 'Studies',
+      label: '患者研究列表',
       component: PanelStudyBrowserTracking.bind(null, {
         commandsManager,
         extensionManager,

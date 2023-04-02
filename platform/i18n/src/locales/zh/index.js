@@ -6,6 +6,7 @@ import MeasurementTable from './MeasurementTable.json';
 import StudyList from './StudyList.json';
 import UserPreferencesModal from './UserPreferencesModal.json';
 import PanelSegmentation from './PanelSegmentation.json';
+import StudyBrowser from './StudyBrowser.json';
 
 export default {
   zh: {
@@ -17,5 +18,6 @@ export default {
     StudyList,
     UserPreferencesModal,
     PanelSegmentation,
+    StudyBrowser,
   },
 };

@@ -4,5 +4,16 @@
   "PatientName": "患者姓名",
   "StudyDate": "检查日期",
   "StudyDescription": "描述",
-  "StudyList": "检查列表"
+  "StudyList": "检查列表",
+  "AccessionNumber": "流水号",
+  "Instances": "实例数",
+  "ClearFilters": "清除筛选",
+  "Description": "Description",
+  "MRN": "MRN",
+  "NumOfStudiesHiggerThan100Message": "Filter the list to 100 studies or less to enable sorting",
+  "Previous": "< 上一页",
+  "Page": "页数",
+  "Next": "下一页 >",
+  "ResultsPerPage": "每页结果数",
+  "Studies": "个检查"
 }
