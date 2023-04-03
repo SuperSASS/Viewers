@@ -63,7 +63,7 @@ function modeFactory() {
     // We should not be.
     id,
     routeName: 'viewer',
-    displayName: 'Basic Viewer',
+    displayName: '基础影像浏览器模式',
     /**
      * Lifecycle hooks
      */

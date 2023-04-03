@@ -36,7 +36,7 @@ function modeFactory({ modeConfiguration }) {
     // We should not be.
     id,
     routeName: 'tmtv',
-    displayName: 'Total Metabolic Tumor Volume',
+    displayName: '总代谢肿瘤体积测量模式',
     /**
      * Lifecycle hooks
      */

@@ -56,7 +56,7 @@ function modeFactory({ modeConfiguration }) {
   return {
     id,
     routeName: 'cocketboat_viewer',
-    displayName: '查看该影像',
+    displayName: 'AI分割与测量模式',
 
     onModeEnter: ({ servicesManager, extensionManager, commandsManager }) => {
       const {
