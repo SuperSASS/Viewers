@@ -4,19 +4,21 @@ import Common from './Common.json';
 import Header from './Header.json';
 import StudyBrowser from './StudyBrowser.json';
 
-import UserPreferencesModal from './Modal/UserPreferencesModal.json';
+import UserPreferencesModal from './Modals/UserPreferencesModal.json';
 
-import Measurement from './Notification/Measurement.json'
+import MeasurementNotification from './Notifications/MeasurementNotification.json';
 
 import MeasurementTable from './Panels/MeasurementTable.json';
 import PanelSegmentation from './Panels/PanelSegmentation.json';
-import PanelSUV from './Panels/PanelSUV.json'
-import PanelSUVExport from './Panels/PanelSUVExport.json'
-import ROIThresholdConfiguration from './Panels/ROIThresholdConfiguration.json'
+import PanelSUV from './Panels/PanelSUV.json';
+import PanelSUVExport from './Panels/PanelSUVExport.json'; // 1. 先引入
+import ROIThresholdConfiguration from './Panels/ROIThresholdConfiguration.json';
 import StudyList from './Panels/StudyList.json';
 
-import SEGViewport from './Viewports/SEGViewport.json'
-import TrackedViewport from './Viewports/TrackedViewport.json'
+import SEGViewport from './Viewports/SEGViewport.json';
+import TrackedViewport from './Viewports/TrackedViewport.json';
+
+import PatientInfo from './Tooltips/PatientInfo.json';
 
 export default {
   zh: {
@@ -29,6 +31,9 @@ export default {
     UserPreferencesModal,
     PanelSegmentation,
     StudyBrowser,
-    Measurement,
+    MeasurementNotification,
+    PatientInfo,
+    TrackedViewport,
+    PanelSUVExport // 2. 导出
   },
 };

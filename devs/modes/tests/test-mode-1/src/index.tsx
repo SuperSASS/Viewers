@@ -34,7 +34,7 @@ const sopClassHandlers = {
 
 const hangingProtocols = {
   ohif_default: '@ohif/extension-default.hangingProtocolModule.default',
-  CocketBoat_default: "test-extension-1.hangingProtocolModule.CocketBoat_default",
+  CocketBoat_default: "CocketBoat_HP_default",
   mpr: '@ohif/extension-cornerstone.hangingProtocolModule.mpr',
   // ptCT: '@ohif/extension-tmtv.hangingProtocolModule.ptCT'
 }
@@ -162,7 +162,7 @@ function modeFactory({ modeConfiguration }) {
       },
     ],
     extensions: extensionDependencies,
-    hangingProtocol: "CocketBoat_default", //hangingProtocols.CocketBoat_default,
+    hangingProtocol: hangingProtocols.CocketBoat_default, //hangingProtocols.CocketBoat_default,
     sopClassHandlers: [sopClassHandlers.default, sopClassHandlers.dicomSeg],
     hotkeys: [...hotkeys.defaults.hotkeyBindings],
   };

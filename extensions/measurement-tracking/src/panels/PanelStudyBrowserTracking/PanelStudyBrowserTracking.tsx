@@ -23,6 +23,7 @@ function PanelStudyBrowserTracking({
   requestDisplaySetCreationForStudy,
   dataSource,
 }) {
+  const { t } = useTranslation('MeasurementNotification');
   const {
     measurementService,
     displaySetService,
@@ -63,10 +64,10 @@ function PanelStudyBrowserTracking({
     } catch (error) {
       console.warn(error);
       uiNotificationService.show({
-        title: 'Thumbnail Double Click',
+        title: t('Thumbnail Double Click'),
         message:
-          'The selected display sets could not be added to the viewport due to a mismatch in the Hanging Protocol rules.',
-        type: 'info',
+          t('The selected display sets could not be added to the viewport due to a mismatch in the Hanging Protocol rules.'),
+        type: 'error',
         duration: 3000,
       });
     }
@@ -576,7 +577,6 @@ function _createStudyBrowserTabs(
   studyDisplayList,
   displaySets
 ) {
-  const { t } = useTranslation('StudyList');
   const primaryStudies = [];
   const recentStudies = [];
   const allStudies = [];

@@ -7,6 +7,12 @@ import moment from 'moment';
  * @param {string} format Desired date format
  * @returns {string} Formatted date
  */
-export default (date, format = 'DD-MMM-YYYY') => {
+export default (date, format = 'YYYY.MM.DD') => {
   return moment(date).format(format);
 };
+
+// 改用中国格式
+
+// export default (date, format = 'DD-MMM-YYYY') => {
+//   return moment(date).format(format);
+// };

@@ -29,8 +29,6 @@ function TrackedCornerstoneViewport(props) {
     viewportOptions,
   } = props;
 
-  const { t } = useTranslation('TrackedViewport');
-
   const {
     measurementService,
     cornerstoneViewportService,
@@ -250,6 +248,7 @@ function _getNextMeasurementUID(
 }
 
 function _getStatusComponent(isTracked) {
+  const { t } = useTranslation("TrackedViewport");
   const trackedIcon = isTracked ? 'status-tracked' : 'status-untracked';
 
   return (
@@ -265,16 +264,17 @@ function _getStatusComponent(isTracked) {
               <span className="text-base text-common-light">
                 {isTracked ? (
                   <>
-                    Series is
-                    <span className="font-bold text-white"> tracked</span> and
-                    can be viewed <br /> in the measurement panel
+                    {String(t("Series is"))}
+                    <span className="font-bold text-white"> {String(t("tracked"))}</span>
+                    {String(t("and can be viewed"))}<br />
+                    {String(t("in the measurement panel"))}
                   </>
                 ) : (
                   <>
-                    Measurements for
-                    <span className="font-bold text-white"> untracked </span>
-                    series <br /> will not be shown in the <br /> measurements
-                    panel
+                    {String(t("Measurements for"))}
+                    <span className="font-bold text-white"> {String(t("untracked"))} </span>
+                    {String(t("series will not be shown"))} <br />
+                    {String(t("in the measurements panel"))}
                   </>
                 )}
               </span>

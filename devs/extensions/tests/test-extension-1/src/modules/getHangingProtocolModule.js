@@ -51,7 +51,7 @@ const stage_default = {
 }
 
 const CocketBoat_HP_default = {
-  id: 'CocketBoat_default',
+  id: 'CocketBoat_HP_default',
   locked: true,
   hasUpdatedPriorsInformation: false,
   name: '默认挂片协议',
