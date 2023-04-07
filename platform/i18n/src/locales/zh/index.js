@@ -34,6 +34,7 @@ export default {
     MeasurementNotification,
     PatientInfo,
     TrackedViewport,
+    PanelSUV,
     PanelSUVExport // 2. 导出
   },
 };
