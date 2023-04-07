@@ -59,6 +59,7 @@ export default async function init({
     maxCacheSize ? maxCacheSize : MAX_CACHE_SIZE_1GB
   );
 
+  // 初始化所有CS的工具
   initCornerstoneTools();
 
   Settings.getRuntimeSettings().set(
@@ -82,8 +83,10 @@ export default async function init({
     stateSyncService,
   } = servicesManager.services;
 
+  // 这里是否说明，全局都可以通过window.services取得所有服务？……
   window.services = servicesManager.services;
 
+  // 有关Cross Origin Isolation的问题
   if (
     appConfig.showWarningMessageForCrossOrigin &&
     !window.crossOriginIsolated
@@ -134,6 +137,7 @@ export default async function init({
 
   const metadataProvider = OHIF.classes.MetadataProvider;
 
+  // CS里示例的：注册VolumeLoader
   volumeLoader.registerVolumeLoader(
     'cornerstoneStreamingImageVolume',
     cornerstoneStreamingImageVolumeLoader
@@ -173,6 +177,8 @@ export default async function init({
   initCineService(cineService);
 
   // When a custom image load is performed, update the relevant viewports
+  // 一般就指对于VolumeViewport/VolumeViewport3D的Viewport加载数据时，会调用
+  /// 在runImageLoadStrategy()[HangingProtocolService.ts] ← _setVolumeViewport()[CornerStoneViewportService.ts] ← _setDisplaySets()[.] ← setViewportData()[.] ← loadViewportData()[OHIFCornerstoneViewport.tsx]
   hangingProtocolService.subscribe(
     hangingProtocolService.EVENTS.CUSTOM_IMAGE_LOAD_PERFORMED,
     volumeInputArrayMap => {

@@ -18,13 +18,13 @@ export default class ToolbarService extends PubSubService {
     },
   };
 
-  buttons: Record<string, unknown> = {};
+  buttons: Record<string, unknown> = {}; // 记录所有的Button(Tool)
   state: {
-    primaryToolId: string;
-    toggles: Record<string, boolean>;
+    primaryToolId: string; // 当前选中的工具
+    toggles: Record<string, boolean>; // 开关变量
     groups: Record<string, unknown>;
   } = { primaryToolId: 'WindowLevel', toggles: {}, groups: {} };
-  buttonSections: Record<string, unknown> = {
+  buttonSections: Record<string, unknown> = { // 真不知道是干嘛的，估计只有primary有用
     /**
      * primary: ['Zoom', 'Wwwc'],
      * secondary: ['Length', 'RectangleRoi']
@@ -71,7 +71,7 @@ export default class ToolbarService extends PubSubService {
     const { groupId, itemId, interactionType, commands } = interaction;
 
     switch (interactionType) {
-      case 'action': {
+      case 'action': { // 执行命令的
         commands.forEach(({ commandName, commandOptions, context }) => {
           if (commandName) {
             commandsManager.runCommand(
@@ -86,7 +86,7 @@ export default class ToolbarService extends PubSubService {
         });
         break;
       }
-      case 'tool': {
+      case 'tool': { // 激活工具的
         try {
           commands.forEach(
             ({ commandName = 'setToolActive', commandOptions, context }) => {
@@ -102,7 +102,7 @@ export default class ToolbarService extends PubSubService {
 
         break;
       }
-      case 'toggle': {
+      case 'toggle': { // 切换开关状态的
         const { commands } = interaction;
         let commandExecuted;
 

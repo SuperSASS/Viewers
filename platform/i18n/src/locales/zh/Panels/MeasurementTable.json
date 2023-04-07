@@ -5,5 +5,8 @@
   "MAX": "最大",
   "NonTargets": "非靶向",
   "Relabel": "重新标记",
-  "Targets": "靶向"
+  "Targets": "靶向",
+  "Export": "Export",
+  "Export CSV": "导出为CSV文件",
+  "Create Report": "创建报告"
 }

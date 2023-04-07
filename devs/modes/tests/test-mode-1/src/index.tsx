@@ -14,7 +14,8 @@ const leftPanels = {
 
 const rightPanels = {
   measure: '@ohif/extension-default.panelModule.measure',
-  segment: 'test-extension-1.panelModule.panelSegmentation'
+  test: 'test-extension-1.panelModule.panelTest',
+  segment: 'test-extension-1.panelModule.panelSegmentation',
 }
 
 
@@ -55,8 +56,8 @@ let unsubscriptions = [] as any[];
 function modeFactory({ modeConfiguration }) {
   return {
     id,
-    routeName: 'cocketboat_viewer',
-    displayName: 'AI分割与测量模式',
+    routeName: 'cocketboat_viewer_test',
+    displayName: 'AI分割与测量模式（测试版）',
 
     onModeEnter: ({ servicesManager, extensionManager, commandsManager }) => {
       const {
@@ -140,7 +141,7 @@ function modeFactory({ modeConfiguration }) {
             id: layoutTemplates.default,
             props: {
               leftPanels: [leftPanels.measurement],
-              rightPanels: [rightPanels.measure, rightPanels.segment],
+              rightPanels: [rightPanels.measure, rightPanels.segment, rightPanels.test],
               viewports: [
                 {
                   namespace: viewports.measurement,
@@ -150,6 +151,10 @@ function modeFactory({ modeConfiguration }) {
                   namespace: viewports.dicomSeg,
                   displaySetsToDisplay: [sopClassHandlers.dicomSeg],
                 },
+                {
+                  namespace: viewports.cornerstone,
+                  displaySetsToDisplay: [sopClassHandlers.default],
+                },
               ],
             },
           };
@@ -157,7 +162,7 @@ function modeFactory({ modeConfiguration }) {
       },
     ],
     extensions: extensionDependencies,
-    hangingProtocol: ['default'],
+    hangingProtocol: "CocketBoat_default", //hangingProtocols.CocketBoat_default,
     sopClassHandlers: [sopClassHandlers.default, sopClassHandlers.dicomSeg],
     hotkeys: [...hotkeys.defaults.hotkeyBindings],
   };

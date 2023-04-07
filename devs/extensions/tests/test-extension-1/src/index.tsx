@@ -88,7 +88,7 @@ export default {
    * { name, protocols}. Examples include the default hanging protocol provided by
    * the default extension that shows 2x2 viewports.
    */
-  // getHangingProtocolModule;
+  getHangingProtocolModule,
 
   // getCommandsModule({ servicesManager, commandsManager, extensionManager }) {
   //   return commandsModule({

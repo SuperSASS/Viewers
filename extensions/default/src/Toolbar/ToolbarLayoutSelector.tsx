@@ -70,7 +70,7 @@ function LayoutSelector({
       rounded={rest.rounded}
       dropdownContent={
         DropdownContent !== null && (
-          <DropdownContent
+          <DropdownContent // 这里就是OHIFLayoutSelector、也就是UI的LayoutSelector
             rows={rows}
             columns={columns}
             onSelection={onSelectionHandler}
@@ -93,7 +93,7 @@ LayoutSelector.propTypes = {
 LayoutSelector.defaultProps = {
   rows: 3,
   columns: 3,
-  onLayoutChange: () => {},
+  onLayoutChange: () => { },
 };
 
 export default LayoutSelector;

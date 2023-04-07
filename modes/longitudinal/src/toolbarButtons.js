@@ -10,6 +10,7 @@ import { defaults } from '@ohif/core';
 const { windowLevelPresets } = defaults;
 /**
  *
+ * 这个不具体用，会分别绑定为下面三个然后再用
  * @param {*} type - 'tool' | 'action' | 'toggle'
  * @param {*} id
  * @param {*} icon
@@ -27,6 +28,8 @@ function _createButton(type, id, icon, label, commands, tooltip, uiType) {
   };
 }
 
+// 以下四个create，都是用来在items里创建的
+// 这个bind：第一个参数会将该函数绑定到一个对象（相当于改函数内部的this），第二个参数按顺序作为被bind函数的参数
 const _createActionButton = _createButton.bind(null, 'action');
 const _createToggleButton = _createButton.bind(null, 'toggle');
 const _createToolButton = _createButton.bind(null, 'tool');

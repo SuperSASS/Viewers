@@ -214,9 +214,7 @@ const commandsModule = ({
           hangingProtocolService.setActiveStudyUID(activeStudyUID);
         }
 
-        const storedHanging = `${
-          hangingProtocolService.getState().activeStudyUID
-        }:${protocolId}:${useStageIdx || 0}`;
+        const storedHanging = `${hangingProtocolService.getState().activeStudyUID}:${protocolId}:${useStageIdx || 0}`;
 
         const restoreProtocol = !reset && viewportGridStore[storedHanging];
 
@@ -278,19 +276,18 @@ const commandsModule = ({
         activeStudy,
       } = hangingProtocolService.getActiveProtocol();
       const { toggleHangingProtocol } = stateSyncService.getState();
-      const storedHanging = `${
-        activeStudy.StudyInstanceUID
-      }:${protocolId}:${stageIndex | 0}`;
+      const storedHanging = `${activeStudy.StudyInstanceUID}:${protocolId}:${stageIndex | 0}`;
       if (
         protocol.id === protocolId &&
         (stageIndex === undefined || stageIndex === desiredStageIndex)
       ) {
         // Toggling off - restore to previous state
+        // 开关关闭，回到之前的HangingProtocol
         const previousState = toggleHangingProtocol[storedHanging] || {
           protocolId: 'default',
         };
         return actions.setHangingProtocol(previousState);
-      } else {
+      } else { // 开关打开，切换HangingProtocol
         stateSyncService.store({
           toggleHangingProtocol: {
             ...toggleHangingProtocol,
@@ -404,13 +401,13 @@ const commandsModule = ({
           displaySetInstanceUIDs.length > 1
             ? []
             : displaySetInstanceUIDs
-                .map(displaySetInstanceUID =>
-                  hangingProtocolService.getViewportsRequireUpdate(
-                    viewportIndexToUpdate,
-                    displaySetInstanceUID
-                  )
+              .map(displaySetInstanceUID =>
+                hangingProtocolService.getViewportsRequireUpdate(
+                  viewportIndexToUpdate,
+                  displaySetInstanceUID
                 )
-                .flat();
+              )
+              .flat();
 
         // This findOrCreateViewport returns either one of the updatedViewports
         // returned from the HP service OR if there is not one from the HP service then

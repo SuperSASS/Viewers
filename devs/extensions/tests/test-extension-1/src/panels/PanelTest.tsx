@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { SegmentationGroupTable, Button } from "@ohif/ui";
-import api, { ApplyModelAllType } from "../util/api";
+import api, { ApplyModelAllType } from "../utils/api";
 
 import PropTypes from "prop-types";
 
@@ -59,19 +59,24 @@ export default function PanelTest({ servicesManager, commandsManager, extensionM
         , 900);
     }
   };
-  const button2Handler = () => {
-    let viewportState = ViewportGridService.getState();
-    let displaySetInstanceUID = viewportState.viewports[viewportState.activeViewportIndex].displaySetInstanceUIDs;
-    let displaySet = DisplaySetService.getDisplaySetByUID(displaySetInstanceUID[0]);
 
-    let studyUid = displaySet.StudyInstanceUID;
 
-    const dataSource = extensionManager.getActiveDataSource()[0];
-    dataSource.deleteStudyMetadataPromise(studyUid); // 先要删除缓存
-    // &存在Bug：上一条语句，往数据库里增的时候没问题，但删有问题（改可能也有，但一般不改）
-    dataSource.retrieve.series.metadata({
-      StudyInstanceUID: studyUid
+  const buttonRunCommand = () => {
+    const { customizationService } = servicesManager.services;
+
+    const customRoutes = customizationService.getGlobalCustomization(
+      'customRoutes'
+    );
+
+    this.extensionManager.registeredExtensionIds.forEach(extensionId => {
+      const key = `${extensionId}.customizationModule.default`;
+      const defaultCustomizations = this.findExtensionValue(key);
+      if (!defaultCustomizations) return;
+      const { value } = defaultCustomizations;
+      this.addReference(value, true);
     });
+
+    commandsManager.runCommand('showContextMenu', {});
   };
 
   /// 2 - 返回Panel
@@ -81,8 +86,8 @@ export default function PanelTest({ servicesManager, commandsManager, extensionM
         title={"测试"}
       />
       <Button
-        children="手动更新Series？……"
-        onClick={button2Handler}
+        children="运行command - showContextMenu"
+        onClick={buttonRunCommand}
       />
     </div>
   )

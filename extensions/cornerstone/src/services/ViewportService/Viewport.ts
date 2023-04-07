@@ -88,6 +88,7 @@ export type DisplaySet = {
 const STACK = 'stack';
 const DEFAULT_TOOLGROUP_ID = 'default';
 
+// 这个倒是可能是对CS的Viewport的封装
 class ViewportInfo {
   private viewportId = '';
   private viewportIndex: number;

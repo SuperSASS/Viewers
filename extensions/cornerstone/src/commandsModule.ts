@@ -19,6 +19,8 @@ import toggleStackImageSync from './utils/stackSync/toggleStackImageSync';
 import { getFirstAnnotationSelected } from './utils/measurementServiceMappings/utils/selection';
 import getActiveViewportEnabledElement from './utils/getActiveViewportEnabledElement';
 
+import { useTranslation } from 'react-i18next';
+
 function commandsModule({ servicesManager, commandsManager }) {
   const {
     viewportGridService,
@@ -39,6 +41,9 @@ function commandsModule({ servicesManager, commandsManager }) {
     return getActiveViewportEnabledElement(viewportGridService);
   }
 
+  /**
+   * 如果不存在toolGroupId（比如传参没传），就直接返回当前激活选定的Viewport所属的ToolGruop
+   */
   function _getToolGroup(toolGroupId) {
     let toolGroupIdToUse = toolGroupId;
 

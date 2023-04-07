@@ -10,9 +10,9 @@ import { toolGroupIds } from './initToopGroup';
 
 const { windowLevelPresets } = defaults;
 /**
- * 生成一个button里的props【按钮具体定义】
- *
- * @param {*} type - 'tool' | 'action' | 'toggle'【已绑定了具体命令】
+ * 生成一个button里的props【props也就是按钮的具体定义】
+ * 但并不会直接使用该函数，而是用下面三个绑定的函数
+ * @param {*} type - 'tool' | 'action' | 'toggle'【已绑定了具体命令，不需要手动输入】
  * @param {*} id
  * @param {*} icon
  * @param {*} label
@@ -57,10 +57,9 @@ function _createWwwcPreset(preset, title, subtitle) {
 }
 
 /**
- * Creates an array of 'setToolActive' commands for the given toolName - one for
- * each toolGroupId specified in toolGroupIds.
+ * 对给定的toolName，创建一个`setToolActive`（切换激活选中的工具）命令组，将在所有ToolGroup中执行该命令
  * @param {string} toolName
- * @returns {Array} an array of 'setToolActive' commands
+ * @returns {Array} 在所有ToolGroup的'setToolActive'命令数组
  */
 function _createSetToolActiveCommands(toolName) {
   const toolGroupIdArray = [];
@@ -79,19 +78,18 @@ function _createSetToolActiveCommands(toolName) {
 }
 
 const toolbarButtons = [
-  // 测量 组
+  // 测量 组别
   {
     id: 'MeasurementTools',
     type: 'ohif.splitButton',
     props: {
       groupId: 'MeasurementTools',
-      isRadio: true, // ?
-      // Switch?
+      isRadio: true, // 是顶替型组别
       primary: _createToolButton(
-        'Length',
-        'tool-length',
-        'Length',
-        [
+        'Length', // id
+        'tool-length', // icon
+        'Length', // label
+        [ // command
           {
             commandName: 'setToolActive',
             commandOptions: {
@@ -225,7 +223,7 @@ const toolbarButtons = [
       commands: _createSetToolActiveCommands('Zoom'),
     },
   },
-  // Window Level + Presets...
+  // 窗宽窗位 组别
   {
     id: 'WindowLevel',
     type: 'ohif.splitButton',
@@ -263,7 +261,7 @@ const toolbarButtons = [
       ],
     },
   },
-  // Pan...
+  // 平移
   {
     id: 'Pan',
     type: 'ohif.radioGroup',
@@ -274,6 +272,7 @@ const toolbarButtons = [
       commands: _createSetToolActiveCommands('Pan'),
     },
   },
+  // 截图
   {
     id: 'Capture',
     type: 'ohif.action',
@@ -290,6 +289,7 @@ const toolbarButtons = [
       ],
     },
   },
+  // 布局
   {
     id: 'Layout',
     type: 'ohif.layoutSelector',
@@ -298,6 +298,7 @@ const toolbarButtons = [
       columns: 3,
     },
   },
+  // MPR
   {
     id: 'MPR',
     type: 'ohif.action',
@@ -316,6 +317,7 @@ const toolbarButtons = [
       ],
     },
   },
+  // 十字线
   {
     id: 'Crosshairs',
     type: 'ohif.radioGroup',
@@ -335,7 +337,7 @@ const toolbarButtons = [
       ],
     },
   },
-  // More...
+  // 更多
   {
     id: 'MoreTools',
     type: 'ohif.splitButton',

@@ -1,10 +1,9 @@
-// import axios from axios
 import axios, { AxiosInstance } from "axios";
 
 const ApiUrl = "http://localhost:65500";
 const ApiTimeout = 0; // 永不超时
 
-class HttpClient {
+class AxiosClient {
   private readonly Client: AxiosInstance;
 
   constructor() {
@@ -29,7 +28,7 @@ class HttpClient {
   }
 }
 
-const ApiClient = new HttpClient();
+const ApiClient = new AxiosClient();
 
 export default ApiClient;
 

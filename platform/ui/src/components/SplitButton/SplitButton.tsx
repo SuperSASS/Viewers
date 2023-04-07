@@ -63,12 +63,13 @@ const classes = {
         ? 'text-primary-dark'
         : 'text-[#348cfd] group-hover/secondary:text-primary-light'
     ),
+  // 这里定义了分割线的样式（如果没悬浮、扩展下拉项、激活）就是border-primary-active，否则就是border-transparent
   Separator: ({ primary, isExpanded, isHovering }) =>
     classNames(
       baseClasses.Separator,
       isHovering || isExpanded || primary.isActive
-        ? 'border-transparent'
-        : 'border-primary-active'
+        ? 'border-transparent' // 也是控制颜色 - 透明
+        : 'border-primary-active' // 整个控制边框颜色的，用的就是primary-active这个变量的颜色
     ),
   Content: ({ isExpanded }) =>
     classNames(baseClasses.Content, isExpanded ? 'block' : 'hidden'),
