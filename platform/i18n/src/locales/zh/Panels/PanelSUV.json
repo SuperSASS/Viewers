@@ -4,5 +4,7 @@
   "Total Dose (bq)": "",
   "Half Life (s)": "",
   "Injection Time (s)": "",
-  "Acquisition Time (s)": ""
+  "Acquisition Time (s)": "",
+  "ROI Threshold Configuration": "",
+  "Segmentations": ""
 }

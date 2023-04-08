@@ -1,0 +1,12 @@
+{
+  "Please specify the dimensions, filename, and desired type for the output image.": "",
+  "File Name": "文件名称",
+  "Image width (px)":"",
+  "Image height (px)":"",
+  "File Type":"文件类型",
+  "Show Annotations":"",
+  "Image preview":"",
+  "Active viewport has no displayed image":"",
+  "Cancel":"取消",
+  "Download":"下载"
+}

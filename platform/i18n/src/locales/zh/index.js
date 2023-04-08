@@ -5,6 +5,7 @@ import Header from './Header.json';
 import StudyBrowser from './StudyBrowser.json';
 
 import UserPreferencesModal from './Modals/UserPreferencesModal.json';
+import Modals from './Modals/Modals.json'
 
 import MeasurementNotification from './Notifications/MeasurementNotification.json';
 
@@ -35,6 +36,7 @@ export default {
     PatientInfo,
     TrackedViewport,
     PanelSUV,
-    PanelSUVExport // 2. 导出
+    PanelSUVExport,
+    Modals
   },
 };

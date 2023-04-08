@@ -8,5 +8,6 @@
   "Targets": "靶向",
   "Export": "Export",
   "Export CSV": "导出为CSV文件",
-  "Create Report": "创建报告"
+  "Create Report": "创建报告",
+  "No tracked measurements": ""
 }
