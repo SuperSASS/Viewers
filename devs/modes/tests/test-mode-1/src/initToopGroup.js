@@ -1,19 +1,13 @@
-export const toolGroupIds = {
-  default: 'defaultToolGroup', // 非MIP视图的工具组
-  MIP: 'mipToolGroup',
-  // CT: 'ctToolGroup',
-  // PT: 'ptToolGroup',
-  // Fusion: 'fusionToolGroup',
-  // MPR: 'mpr',
-};
+
 
 function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
-  const utilityModule = extensionManager.getModuleEntry(
-    '@ohif/extension-cornerstone.utilityModule.tools'
-  );
-  const { toolNames, Enums } = utilityModule.exports;
+  const csUtilityModule = extensionManager.getModuleEntry('@ohif/extension-cornerstone.utilityModule.tools');
+  const { toolNames, Enums } = csUtilityModule.exports;
+  const ckUtilityModule = extensionManager.getModuleEntry('test-extension-1.utilityModule.common');
+  const { toolGroupIds } = ckUtilityModule.exports;
 
-  const tools = {
+  // 通用的Tool
+  const defaultTools = {
     active: [
       {
         toolName: toolNames.WindowLevel, // 窗宽窗位
@@ -44,16 +38,21 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
       { toolName: toolNames.Angle },
       { toolName: toolNames.CobbAngle },
       { toolName: toolNames.Magnify },
-      { toolName: toolNames.SegmentationDisplay }, // 这个在tmtv是enable
       // 比tmtv多的
       { toolName: toolNames.PlanarFreehandROI },
       { toolName: toolNames.CalibrationLine },
     ],
     // enabled
+    enabled: [
+      { toolName: toolNames.SegmentationDisplay }, // 显示Segmentation的
+    ],
     // disabled
-    disabled: [{ toolName: toolNames.ReferenceLines }],
+    disabled: [
+      { toolName: toolNames.ReferenceLines },
+      { toolName: toolNames.Crosshairs }
+    ],
   };
-  const toolsConfig = {
+  const defaultToolsConfig = {
     [toolNames.Crosshairs]: {
       viewportIndicators: false,
       autoPan: {
@@ -76,7 +75,6 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
         }),
     },
   };
-
   // 专为mip量身打造的Tool
   const mipTools = {
     active: [
@@ -99,9 +97,8 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
     },
   };
 
-  toolGroupService.createToolGroupAndAddTools(toolGroupIds.default, tools, toolsConfig);
-  toolGroupService.createToolGroupAndAddTools(toolGroupIds.CT, tools, toolsConfig);
-  toolGroupService.createToolGroupAndAddTools(toolGroupIds.MIP, mipTools, mipToolsConfig);
+  toolGroupService.createToolGroupAndAddTools(toolGroupIds.default, defaultTools, defaultToolsConfig);
+  toolGroupService.createToolGroupAndAddTools(toolGroupIds.mip, mipTools, mipToolsConfig);
 }
 
 // 不用像tmtv那个傻的一样传参，就传这三个就行，他穿的参在这三个里面都可以获取
