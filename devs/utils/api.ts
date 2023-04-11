@@ -17,20 +17,36 @@ class HttpClient {
     this.Client.interceptors.response.use(
       (res) => res,
       (err) => {
-        console.error(`!API Error - ApplyModelAll(${err.response.status}): ` + err.response.statusText);
-        throw new Error(err.response.data.message);
+        try {
+          if (err.response) {
+            console.error(`!API Error - (${err.response.status}): ` + err.response.statusText);
+            throw new Error(err.response.data.message);
+          }
+          else
+            console.error(`!API Error - (${err})`);
+        }
+        catch (e) { throw e; }
       }
     )
   }
 
   public async ApplyModelAll(data: ApplyModelAllType): Promise<ResponseType> {
-    const url = "/User/forecast";
+    const url = "/User/Model/ApplyModel";
     const response = await this.Client.post(url, {}, { params: data });
     return response;
   }
 
-  public async UploadFile(data: FormData): Promise<ResponseType> {
-    const url = "/User/upload";
+  public async UploadFile(data: UploadFileTyoe): Promise<ResponseType> {
+    const url = "/User/Image/UploadImage";
+    const headers = {
+      'Content-Type': 'multipart/form-data'
+    };
+    const response = await this.Client.post(url, data, { headers });
+    return response;
+  }
+
+  public async UploadModel(data: UploadModel): Promise<ResponseType> {
+    const url = "/User/Model/AddModel";
     const headers = {
       'Content-Type': 'multipart/form-data'
     };
@@ -38,6 +54,8 @@ class HttpClient {
     return response;
   }
 }
+
+
 
 const ApiClient = new HttpClient();
 
@@ -58,6 +76,6 @@ export type ApplyModelAllType = {
   apifoxResponseId?: string,
 };
 
-// export type UploadFileType = {
-//   filepath: string,
-// }
+export type UploadFileTyoe = FormData
+
+export type UploadModel = FormData

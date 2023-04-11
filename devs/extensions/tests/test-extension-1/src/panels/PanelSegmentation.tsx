@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { SegmentationGroupTable, Button } from '@ohif/ui';
-
+import { SegmentationGroupTable, Button,Dropdown,IconButton,Icon } from '@ohif/ui';
 import { ApplyModelAllType } from "../utils/api";
 import callInputDialog from '../utils/callInputDialog';
+import callModelDialog from '../utils/callModelDialog';
 import api from "../utils/api";
 // import callColorPickerDialog from './callColorPickerDialog';
 
@@ -147,6 +147,18 @@ export default function PanelSegmentation({
     });
   };
 
+  const OnModelUpload =() =>
+  { var label ='???';
+    callModelDialog(UIDialogService, label, (label, actionId) => {
+    if (label === '') {
+      return;
+    }
+  })
+
+  };
+
+
+
   const onSegmentationEdit = segmentationId => {
     const segmentation = SegmentationService.getSegmentation(segmentationId);
     const { label } = segmentation;
@@ -272,7 +284,45 @@ export default function PanelSegmentation({
         <Button onClick={onApplyModelClick} color="primary">
           应用模型分割
         </Button>
+        <Button onClick={OnModelUpload} color="primary">
+          上传模型
+        </Button>
       </div>
+      <div className="flex h-32">
+  <Dropdown
+    id="dropdown-1"
+    list={[
+      {
+        icon: 'clipboard',
+        onClick: () => {},
+        title: 'Item 1'
+      },
+      {
+        icon: 'tracked',
+        onClick: function noRefCheck() {},
+        title: 'Item 2'
+      }
+    ]}
+  >
+                <IconButton
+              id={'options-settings-icon'}
+              variant="text"
+              color="inherit"
+              size="initial"
+              className="text-primary-active"
+            >
+              <Icon name="settings" />
+            </IconButton>
+    <div className="text-black">
+      Drop Down
+    </div>
+  </Dropdown>
+</div>
+<div>
+  <select>
+    
+  </select>
+</div>
       {/* show segmentation table */}
       <SegmentationGroupTable
         segmentations={segmentations}
