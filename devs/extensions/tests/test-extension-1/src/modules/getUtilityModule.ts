@@ -1,4 +1,5 @@
 import ApiClient from "../utils/api"
+import { toolGroupIds } from "../common/HangingProtocolModuleConfig"
 
 export default function getUtilityModule() {
   return [
@@ -9,7 +10,10 @@ export default function getUtilityModule() {
       }
     },
     {
-
+      name: 'common',
+      exports: {
+        toolGroupIds
+      }
     }
   ]
 }

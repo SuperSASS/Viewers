@@ -1,3 +1,10 @@
+// 真的服了.jpg
+const toolGroupIds = {
+  default: "defaultToolGroup",
+  mip: "mipToolGroup",
+}
+
+
 // TODO: torn, can either bake this here; or have to create a whole new button type
 // Only ways that you can pass in a custom React component for render :l
 import {
@@ -6,7 +13,7 @@ import {
   WindowLevelMenuItem,
 } from '@ohif/ui';
 import { defaults } from '@ohif/core';
-import { toolGroupIds } from './initToopGroup';
+// import { toolGroupIds } from './initToopGroup';
 
 const { windowLevelPresets } = defaults;
 /**

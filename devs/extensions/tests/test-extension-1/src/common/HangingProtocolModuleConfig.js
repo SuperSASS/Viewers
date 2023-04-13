@@ -1,42 +1,10 @@
-const displaySetSelectors = { // 我们基本只处理可重建(Reconstructable)的影像，现在也假设为CT
-  ctDisplaySet: {
-    imageMatchingRules: [],
-    seriesMatchingRules: [
-      {
-        weight: 1,
-        attribute: 'Modality',
-        constraint: {
-          equals: {
-            value: 'CT',
-          },
-        },
-        required: true,
-      },
-      {
-        weight: 1,
-        attribute: 'isReconstructable',
-        constraint: {
-          equals: {
-            value: true,
-          },
-        },
-        required: true,
-      },
-      {
-        attribute: 'SeriesDescription',
-        constraint: {
-          contains: 'CT',
-        },
-      },
-      {
-        attribute: 'SeriesDescription',
-        constraint: {
-          contains: 'CT WB',
-        },
-      },
-    ],
-    studyMatchingRules: [],
-  },
+export const toolGroupIds = {
+  default: "defaultToolGroup",
+  mip: "mipToolGroup",
+}
+
+// 在这个HP中，只要存在Frames的就可以尝试挂到Viewport上【主要是针对SEG文件
+const displaySetSelectors = {
   defaultDisplaySet: {
     seriesMatchingRules: [
       {
@@ -48,15 +16,15 @@ const displaySetSelectors = { // 我们基本只处理可重建(Reconstructable)
     ],
   },
 };
+const viewportDisplaySets = "defaultDisplaySet";
 
-const viewportDisplaySets = "defaultDisplaySet"
-
+// 四种具体的Viewport、类似于ITK-SNAP
 const ctAXIAL = {
   viewportOptions: {
     viewportId: 'ctAXIAL',
     viewportType: 'volume',
     orientation: 'axial',
-    toolGroupId: 'ctToolGroup',
+    toolGroupId: toolGroupIds.default,
     initialImageOptions: {
       // index: 5,
       preset: 'first', // 'first', 'last', 'middle'
@@ -76,13 +44,12 @@ const ctAXIAL = {
     },
   ],
 };
-
 const ctSAGITTAL = {
   viewportOptions: {
     viewportId: 'ctSAGITTAL',
     viewportType: 'volume',
     orientation: 'sagittal',
-    toolGroupId: 'ctToolGroup',
+    toolGroupId: toolGroupIds.default,
     syncGroups: [
       {
         type: 'voi',
@@ -98,13 +65,12 @@ const ctSAGITTAL = {
     },
   ],
 };
-
 const ctCORONAL = {
   viewportOptions: {
     viewportId: 'ctCORONAL',
     viewportType: 'volume',
     orientation: 'coronal',
-    toolGroupId: 'ctToolGroup',
+    toolGroupId: toolGroupIds.default,
     syncGroups: [
       {
         type: 'voi',
@@ -120,14 +86,13 @@ const ctCORONAL = {
     },
   ],
 };
-
 const mipSAGITTAL = {
   viewportOptions: {
     viewportId: 'mipSagittal',
     viewportType: 'volume',
     orientation: 'sagittal',
     // background: [1, 1, 1],
-    toolGroupId: 'mipToolGroup',
+    toolGroupId: toolGroupIds.mip,
     syncGroups: [
     ],
     customViewportProps: {
