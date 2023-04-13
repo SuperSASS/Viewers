@@ -5,6 +5,7 @@ import callInputDialog from '../utils/callInputDialog';
 import callModelDialog from '../utils/callModelDialog';
 import callReprocessDialog from '../utils/callReprocessDialog';
 import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType } from "../../../../../utils/api";
+import callColorDialog from '../Utils/callColorDialog';
 
 // import callColorPickerDialog from './callColorPickerDialog';
 
@@ -232,7 +233,18 @@ export default function PanelSegmentation({
 
   // 单个Segment切换颜色
   const onSegmentColorClick = (segmentationId, segmentIndex) => {
-    console.log(1);
+    const toolGroupIds = getToolGroupIds(segmentationId);
+    const handleChangeColor = (color) => {
+      SegmentationService.setSegmentColor(
+        segmentationId,
+        segmentIndex,
+        color,
+        toolGroupIds[0]);
+    };
+    callColorDialog(
+      UIDialogService,
+      handleChangeColor
+    )
     return;
   };
 
