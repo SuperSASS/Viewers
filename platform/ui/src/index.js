@@ -60,6 +60,7 @@ export {
   InputLabelWrapper,
   InputMultiSelect,
   InputText,
+  InputTextarea,
   Label,
   LayoutSelector,
   LegacyCinePlayer,

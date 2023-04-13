@@ -1,11 +1,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { SegmentationGroupTable, Button,Dropdown,IconButton,Icon } from '@ohif/ui';
-import { ApplyModelAllType } from "../utils/api";
+import { SegmentationGroupTable, Button, Select } from '@ohif/ui';
 import callInputDialog from '../utils/callInputDialog';
 import callModelDialog from '../utils/callModelDialog';
-import api from "../utils/api";
+import callReprocessDialog from '../utils/callReprocessDialog';
+import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType } from "../../../../../utils/api";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // import callColorPickerDialog from './callColorPickerDialog';
+
+type ModelListType = {
+  value: string;
+  label: string;
+  description: string;
+}
 
 export default function PanelSegmentation({
   servicesManager,
@@ -31,6 +40,10 @@ export default function PanelSegmentation({
   const [segmentations, setSegmentations] = useState(() => SegmentationService.getSegmentations());
   // 最小化
   const [isMinimized, setIsMinimized] = useState({});
+  // 选择模型的index
+  const [modelIndex, setModelIndex] = useState(0);
+  // 模型列表
+  const [modelList, setModelList] = useState<Array<ModelListType>>([]);
   //#endregion
 
   //#region 副作用（初始化/监听）
@@ -46,7 +59,7 @@ export default function PanelSegmentation({
   }, [segmentations, setIsMinimized]);
 
   // 初始化 - 订阅Segmentation服务的事件
-  useEffect(() => {
+  useEffect(async () => {
     const subscriptions = [] as any[];
     const eventAdded = SegmentationService.EVENTS.SEGMENTATION_ADDED;
     const eventUpdated = SegmentationService.EVENTS.SEGMENTATION_UPDATED;
@@ -60,6 +73,24 @@ export default function PanelSegmentation({
       subscriptions.push(unsubscribe);
     });
 
+    // 通过API，获取模型列表，用setModelList([{}, {}, ...])设置
+    const resopnse = api.GetModels();
+    resopnse.then(resopnse => {
+      console.log(resopnse.data);
+      const modelList: Array<ModelListType> = [];
+      resopnse.data.Result.forEach(item => {
+        modelList.push({
+          value: item.Id,
+          label: item.Id + ' - ' + item.Name,
+          description: item.Description,
+        })
+      })
+      console.log(modelList);
+      setModelList(modelList);
+    })
+
+    setModelList([{ value: "0", label: "测试1", description: "悬浮文字1" },
+    { value: "1", label: "测试2", description: "悬浮文字2" }]);
     return () => {
       subscriptions.forEach(unsub => {
         unsub();
@@ -147,14 +178,54 @@ export default function PanelSegmentation({
     });
   };
 
-  const OnModelUpload =() =>
-  { var label ='???';
-    callModelDialog(UIDialogService, label, (label, actionId) => {
-    if (label === '') {
-      return;
-    }
-  })
 
+  // const uploadModel = async () => {
+  //   var files = document.getElementById('ModelFile').files;
+  //   var modeldec = document.getElementById('Description').value;
+  //   var modelname = modelName;
+  //   const formData = new FormData();
+  //   console.log(modeldec);
+  //   console.log(modelname);
+  //   for (var i = 0; i < files.length; i++) {
+  //     var file = files[i];
+  //     formData.append('ModelFile', file, file.name);
+  //   }
+  //   formData.append('Description', modeldec);
+  //   formData.append('Name', modelname);
+  //   for (const [key, value] of formData.entries()) {
+  //     console.log(key, value)
+  //   }
+  //   try {
+  //     const response = await toast.promise(
+  //       api.UploadModel(formData),
+  //       {
+  //         pending: '上传中，请稍后……',
+  //         success: '上传成功！请刷新网页查看。',
+  //         error: '上传失败，请稍后再试。'
+  //       },
+  //       {
+  //         position: toast.POSITION.TOP_CENTER,
+  //         theme: "colored",
+  //       }
+  //     );
+  //     console.log(response.data);
+  //   }
+  //   catch (e) { }
+  // }
+
+  const OnModelUpload = () => {
+    callModelDialog(
+      UIDialogService,
+      { modelName: "", modelDescription: "" },
+      (model, actionId) => { }
+    )
+  };
+  const OnReprocess = () => {
+    callReprocessDialog(
+      UIDialogService,
+      { Script: "" },
+      (model, actionId) => { }
+    )
   };
 
 
@@ -229,8 +300,16 @@ export default function PanelSegmentation({
   );
   //#endregion
 
-  //#region
+  //#region 回调函数 - 应用模型分割Button
   const onApplyModelClick = async () => {
+    if (modelIndex == 0) {
+      UINotificationService.show({
+        title: "AI模型分割失败",
+        message: "请选择模型。",
+        type: "error",
+      })
+      return;
+    }
     const id = UINotificationService.show({
       title: "AI模型分割中……",
       message: "请稍等，当预测完成后，该窗口会自动关闭，且分割结果会自动添加到左侧研究栏中。",
@@ -242,11 +321,10 @@ export default function PanelSegmentation({
 
     const studyUid = displaySet.StudyInstanceUID;
     const seriesUid = displaySet.SeriesInstanceUID;
-
     const data: ApplyModelAllType = {
       studyUid,
       seriesUid,
-      segType: 0,
+      ModelId: modelIndex[0],
     };
 
     try {
@@ -278,51 +356,103 @@ export default function PanelSegmentation({
   };
   //#endregion
 
+  // 下载影像
+  const onDownloadSeg = async () => {
+    const viewportState = ViewportGridService.getState();
+    const displaySetInstanceUID = viewportState.viewports[viewportState.activeViewportIndex].displaySetInstanceUIDs;
+    const displaySet = DisplaySetService.getDisplaySetByUID(displaySetInstanceUID[0]);
+    const studyUid = displaySet.StudyInstanceUID;
+    const seriesUid = displaySet.SeriesInstanceUID;
+    // const instanceUid = displaySet.images[0].SOPInstanceUID;
+    const instanceUid = displaySet.Modality == "SEG" ? displaySet.SOPInstanceUID : displaySet.images[0].SOPInstanceUID;
+    const data: DownloadSegType = {
+      studyUid,
+      seriesUid,
+      instanceUid,
+    };
+    try {
+      const response: any = await api.DownloadSeg(data);
+      const url = response.data.url
+      const link = document.createElement('a');
+      link.href = `http://localhost:8042/instances/${url}/file`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    catch (e) {
+      UINotificationService.show({
+        title: "影像导出失败",
+        message: e.message,
+        type: "error",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col flex-auto min-h-0 mt-1">
       <div className="flex mx-4 my-4 space-x-4 justify-center">
         <Button onClick={onApplyModelClick} color="primary">
           应用模型分割
         </Button>
+      </div>
+      <div className="flex mx-4 my-4 space-x-4 justify-center">
         <Button onClick={OnModelUpload} color="primary">
           上传模型
         </Button>
       </div>
+      <div className="flex mx-4 my-4 space-x-4 justify-center">
+        <Button onClick={OnReprocess} color="primary">
+          自定义后处理
+        </Button>
+      </div>
+      <div className="flex mx-4 my-4 space-x-4 justify-center">
+        <Button onClick={onDownloadSeg} color="primary">
+          导出
+        </Button>
+      </div>
       <div className="flex h-32">
-  <Dropdown
-    id="dropdown-1"
-    list={[
-      {
-        icon: 'clipboard',
-        onClick: () => {},
-        title: 'Item 1'
-      },
-      {
-        icon: 'tracked',
-        onClick: function noRefCheck() {},
-        title: 'Item 2'
-      }
-    ]}
-  >
-                <IconButton
-              id={'options-settings-icon'}
-              variant="text"
-              color="inherit"
-              size="initial"
-              className="text-primary-active"
-            >
-              <Icon name="settings" />
-            </IconButton>
-    <div className="text-black">
-      Drop Down
-    </div>
-  </Dropdown>
-</div>
-<div>
-  <select>
-    
-  </select>
-</div>
+        {/* <Dropdown
+          id="dropdown-1"
+          list={[
+            {
+              icon: 'clipboard',
+              onClick: () => { },
+              title: 'Item 1'
+            },
+            {
+              icon: 'tracked',
+              onClick: function noRefCheck() { },
+              title: 'Item 2'
+            }
+          ]}
+        >
+          <IconButton
+            id={'options-settings-icon'}
+            variant="text"
+            color="inherit"
+            size="initial"
+            className="text-primary-active"
+          >
+            <Icon name="settings" />
+          </IconButton>
+          <div className="text-black">
+            Drop Down
+          </div>
+        </Dropdown> */}
+        <Select
+          className="mt-2 text-white"
+          isClearable={false}
+          value={modelIndex}
+          data-cy="file-type"
+          onChange={value => {
+            setModelIndex([value.value]);
+          }}
+          hideSelectedOptions={false}
+          options={modelList}
+          getOptionLabel={(opt) => (<span title={opt.description}>{opt.label}</span>)}
+          placeholder="模型选择："
+        />
+      </div>
       {/* show segmentation table */}
       <SegmentationGroupTable
         segmentations={segmentations}

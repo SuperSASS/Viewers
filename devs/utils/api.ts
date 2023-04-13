@@ -45,7 +45,7 @@ class HttpClient {
     return response;
   }
 
-  public async UploadModel(data: UploadModel): Promise<ResponseType> {
+  public async UploadModel(data: UploadModelType): Promise<ResponseType> {
     const url = "/User/Model/AddModel";
     const headers = {
       'Content-Type': 'multipart/form-data'
@@ -53,8 +53,27 @@ class HttpClient {
     const response = await this.Client.post(url, data, { headers });
     return response;
   }
-}
 
+  public async GetModels(): Promise<ResponseType> {
+    const url = "/User/Model/GetModels";
+    const response = await this.Client.get(url);
+    return response;
+  }
+  public async Reprocess(data: ReprocessType): Promise<ResponseType> {
+    const url = "/User/Model/Segment/Reprocess";
+    const headers = {
+      'Content-Type': 'text/plain'
+    };
+    const response = await this.Client.post(url, data, { headers });
+    return response;
+  }
+  public async DownloadSeg(data: DownloadSegType): Promise<ResponseType> {
+    const url = "/User/Image/Download";
+    const response = await this.Client.post(url, {}, { params: data });
+    return response;
+  }
+
+}
 
 
 const ApiClient = new HttpClient();
@@ -67,15 +86,25 @@ export type ResponseType = {
   headers: object, // `headers` 是服务器响应头
   config: object, // `config` 是 `axios` 请求的配置信息
   data: object, // 响应数据
+};
+export type GetModelsDataType = {
+  Id: number;
+  Name: string;
+  Description: string;
 }
-
+// -----------------------
 export type ApplyModelAllType = {
   studyUid: string,
   seriesUid: string,
-  segType: number,
+  ModelId: number,
   apifoxResponseId?: string,
 };
-
+export type DownloadSegType = {
+  studyUid: string,
+  seriesUid: string,
+  instanceUid: string
+  apifoxResponseId?: string,
+};
+export type ReprocessType = string
 export type UploadFileTyoe = FormData
-
-export type UploadModel = FormData
+export type UploadModelType = FormData

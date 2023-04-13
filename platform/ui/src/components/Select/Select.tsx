@@ -50,6 +50,7 @@ const Select = ({
   placeholder,
   noIcons,
   menuPlacement,
+  getOptionLabel,
   value,
 }) => {
   const _noIconComponents = {
@@ -90,6 +91,7 @@ const Select = ({
       hideSelectedOptions={hideSelectedOptions}
       components={_components}
       placeholder={placeholder}
+      getOptionLabel={getOptionLabel}
       options={options}
       value={value && Array.isArray(value) ? selectedOptions : value}
       onChange={(selectedOptions, { action }) => {
