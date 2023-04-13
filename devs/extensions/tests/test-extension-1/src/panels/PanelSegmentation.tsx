@@ -5,8 +5,6 @@ import callInputDialog from '../utils/callInputDialog';
 import callModelDialog from '../utils/callModelDialog';
 import callReprocessDialog from '../utils/callReprocessDialog';
 import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType } from "../../../../../utils/api";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 // import callColorPickerDialog from './callColorPickerDialog';
 
@@ -76,7 +74,6 @@ export default function PanelSegmentation({
     // 通过API，获取模型列表，用setModelList([{}, {}, ...])设置
     const resopnse = api.GetModels();
     resopnse.then(resopnse => {
-      console.log(resopnse.data);
       const modelList: Array<ModelListType> = [];
       resopnse.data.Result.forEach(item => {
         modelList.push({
@@ -85,12 +82,11 @@ export default function PanelSegmentation({
           description: item.Description,
         })
       })
-      console.log(modelList);
       setModelList(modelList);
     })
 
-    setModelList([{ value: "0", label: "测试1", description: "悬浮文字1" },
-    { value: "1", label: "测试2", description: "悬浮文字2" }]);
+    // setModelList([{ value: "0", label: "测试1", description: "悬浮文字1" }, { value: "1", label: "测试2", description: "悬浮文字2" }]); //仅供测试
+
     return () => {
       subscriptions.forEach(unsub => {
         unsub();
@@ -268,7 +264,8 @@ export default function PanelSegmentation({
   };
   //#endregion
 
-  //#region 回调函数 - 应用模型分割
+  //#region 回调函数 - 按钮
+  // 应用模型分割
   const onApplyModelClick = async () => {
     if (modelIndex == 0) {
       UINotificationService.show({
@@ -322,9 +319,7 @@ export default function PanelSegmentation({
         , 900);
     }
   };
-  //#endregion
 
-  //#region 回调函数 - 下载影像
   // 下载影像
   const onDownloadSeg = async () => {
     const viewportState = ViewportGridService.getState();
@@ -355,6 +350,24 @@ export default function PanelSegmentation({
         type: "error",
       });
     }
+  };
+
+  // 上传模型
+  const OnModelUpload = () => {
+    callModelDialog(
+      UIDialogService,
+      { modelName: "", modelDescription: "" },
+      (model, actionId) => { }
+    )
+  };
+
+  // 上传后处理脚本
+  const OnReprocess = () => {
+    callReprocessDialog(
+      UIDialogService,
+      { Script: "" },
+      (model, actionId) => { }
+    )
   };
   //#endregion
 
