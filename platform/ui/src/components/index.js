@@ -69,6 +69,7 @@ import InputNumber from './InputNumber';
 import CheckBox from './CheckBox';
 import LoadingIndicatorProgress from './LoadingIndicatorProgress';
 import ViewportActionBar from './ViewportActionBar';
+import InputTextarea from './InputTextarea';
 
 export {
   AboutModal,
@@ -98,6 +99,7 @@ export {
   InputLabelWrapper,
   InputMultiSelect,
   InputText,
+  InputTextarea,
   ImageScrollbar,
   Label,
   LayoutSelector,

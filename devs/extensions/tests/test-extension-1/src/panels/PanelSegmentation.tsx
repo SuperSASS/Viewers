@@ -1,11 +1,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { SegmentationGroupTable, Button } from '@ohif/ui';
+import { SegmentationGroupTable, Button, Select } from '@ohif/ui';
+import callInputDialog from '../utils/callInputDialog';
+import callModelDialog from '../utils/callModelDialog';
+import callReprocessDialog from '../utils/callReprocessDialog';
+import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType } from "../../../../../utils/api";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-import { ApplyModelAllType } from "../Utils/api";
-import callInputDialog from '../Utils/callInputDialog';
-import api from "../Utils/api";
 // import callColorPickerDialog from './callColorPickerDialog';
+
+type ModelListType = {
+  value: string;
+  label: string;
+  description: string;
+}
 
 export default function PanelSegmentation({
   servicesManager,
@@ -31,6 +40,10 @@ export default function PanelSegmentation({
   const [segmentations, setSegmentations] = useState(() => SegmentationService.getSegmentations());
   // 最小化
   const [isMinimized, setIsMinimized] = useState({});
+  // 选择模型的index
+  const [modelIndex, setModelIndex] = useState(0);
+  // 模型列表
+  const [modelList, setModelList] = useState<Array<ModelListType>>([]);
   //#endregion
 
   //#region 副作用（初始化/监听）
@@ -46,7 +59,7 @@ export default function PanelSegmentation({
   }, [segmentations, setIsMinimized]);
 
   // 初始化 - 订阅Segmentation服务的事件
-  useEffect(() => {
+  useEffect(async () => {
     const subscriptions = [] as any[];
     const eventAdded = SegmentationService.EVENTS.SEGMENTATION_ADDED;
     const eventUpdated = SegmentationService.EVENTS.SEGMENTATION_UPDATED;
@@ -60,6 +73,24 @@ export default function PanelSegmentation({
       subscriptions.push(unsubscribe);
     });
 
+    // 通过API，获取模型列表，用setModelList([{}, {}, ...])设置
+    const resopnse = api.GetModels();
+    resopnse.then(resopnse => {
+      console.log(resopnse.data);
+      const modelList: Array<ModelListType> = [];
+      resopnse.data.Result.forEach(item => {
+        modelList.push({
+          value: item.Id,
+          label: item.Id + ' - ' + item.Name,
+          description: item.Description,
+        })
+      })
+      console.log(modelList);
+      setModelList(modelList);
+    })
+
+    setModelList([{ value: "0", label: "测试1", description: "悬浮文字1" },
+    { value: "1", label: "测试2", description: "悬浮文字2" }]);
     return () => {
       subscriptions.forEach(unsub => {
         unsub();
@@ -114,6 +145,7 @@ export default function PanelSegmentation({
     SegmentationService.toggleSegmentationVisibility(segmentationId);
   };
 
+  // 设置Segmentation组的配置【不知道干啥的
   const setSegmentationConfiguration = useCallback(
     (segmentationId, key, value) => {
       SegmentationService.setConfiguration({
@@ -123,6 +155,18 @@ export default function PanelSegmentation({
     },
     [SegmentationService]
   );
+
+  // Segmentation添加，已废弃
+  // const onSegmentationAdd = () => {
+  //   SegmentationService.addOrUpdateSegmentation(
+  //     {
+  //       id: segmentations ? 0 : segmentations[segmentations.length - 1].id + 1,
+  //       label: "新标签",
+  //     },
+  //     false, // suppress event
+  //     true // notYetUpdatedAtSource
+  //   );
+  // };
   //#endregion
 
   //#region 回调函数 - SegmentationGroupTable - 有关Segment的
@@ -149,17 +193,7 @@ export default function PanelSegmentation({
     });
   };
 
-  // const onSegmentationAdd = () => {
-  //   SegmentationService.addOrUpdateSegmentation(
-  //     {
-  //       id: segmentations ? 0 : segmentations[segmentations.length - 1].id + 1,
-  //       label: "新标签",
-  //     },
-  //     false, // suppress event
-  //     true // notYetUpdatedAtSource
-  //   );
-  // };
-
+  // 单个Segment标签添加
   const onSegmentAdd = () => {
     const segmentations = SegmentationService.getSegmentations();
     const segmentationId = segmentations[0].id;
@@ -234,17 +268,16 @@ export default function PanelSegmentation({
   };
   //#endregion
 
-
-  const getToolGroupIds = segmentationId => {
-    const toolGroupIds = SegmentationService.getToolGroupIdsWithSegmentation(
-      segmentationId
-    );
-
-    return toolGroupIds;
-  };
-
   //#region 回调函数 - 应用模型分割
   const onApplyModelClick = async () => {
+    if (modelIndex == 0) {
+      UINotificationService.show({
+        title: "AI模型分割失败",
+        message: "请选择模型。",
+        type: "error",
+      })
+      return;
+    }
     const id = UINotificationService.show({
       title: "AI模型分割中……",
       message: "请稍等，当预测完成后，该窗口会自动关闭，且分割结果会自动添加到左侧研究栏中。",
@@ -256,11 +289,10 @@ export default function PanelSegmentation({
 
     const studyUid = displaySet.StudyInstanceUID;
     const seriesUid = displaySet.SeriesInstanceUID;
-
     const data: ApplyModelAllType = {
       studyUid,
       seriesUid,
-      segType: 0,
+      ModelId: modelIndex[0],
     };
 
     try {
@@ -292,12 +324,114 @@ export default function PanelSegmentation({
   };
   //#endregion
 
+  //#region 回调函数 - 下载影像
+  // 下载影像
+  const onDownloadSeg = async () => {
+    const viewportState = ViewportGridService.getState();
+    const displaySetInstanceUID = viewportState.viewports[viewportState.activeViewportIndex].displaySetInstanceUIDs;
+    const displaySet = DisplaySetService.getDisplaySetByUID(displaySetInstanceUID[0]);
+    const studyUid = displaySet.StudyInstanceUID;
+    const seriesUid = displaySet.SeriesInstanceUID;
+    // const instanceUid = displaySet.images[0].SOPInstanceUID;
+    const instanceUid = displaySet.Modality == "SEG" ? displaySet.SOPInstanceUID : displaySet.images[0].SOPInstanceUID;
+    const data: DownloadSegType = {
+      studyUid,
+      seriesUid,
+      instanceUid,
+    };
+    try {
+      const response: any = await api.DownloadSeg(data);
+      const url = response.data.url
+      const link = document.createElement('a');
+      link.href = `http://localhost:8042/instances/${url}/file`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    catch (e) {
+      UINotificationService.show({
+        title: "影像导出失败",
+        message: e.message,
+        type: "error",
+      });
+    }
+  };
+  //#endregion
+
+  //#region 其他辅助函数
+  const getToolGroupIds = segmentationId => {
+    const toolGroupIds = SegmentationService.getToolGroupIdsWithSegmentation(
+      segmentationId
+    );
+
+    return toolGroupIds;
+  };
+  //#endregion
+
   return (
     <div className="flex flex-col flex-auto min-h-0 mt-1">
       <div className="flex mx-4 my-4 space-x-4 justify-center">
         <Button onClick={onApplyModelClick} color="primary">
           应用模型分割
         </Button>
+      </div>
+      <div className="flex mx-4 my-4 space-x-4 justify-center">
+        <Button onClick={OnModelUpload} color="primary">
+          上传模型
+        </Button>
+      </div>
+      <div className="flex mx-4 my-4 space-x-4 justify-center">
+        <Button onClick={OnReprocess} color="primary">
+          自定义后处理
+        </Button>
+      </div>
+      <div className="flex mx-4 my-4 space-x-4 justify-center">
+        <Button onClick={onDownloadSeg} color="primary">
+          导出
+        </Button>
+      </div>
+      <div className="flex h-32">
+        {/* <Dropdown
+          id="dropdown-1"
+          list={[
+            {
+              icon: 'clipboard',
+              onClick: () => { },
+              title: 'Item 1'
+            },
+            {
+              icon: 'tracked',
+              onClick: function noRefCheck() { },
+              title: 'Item 2'
+            }
+          ]}
+        >
+          <IconButton
+            id={'options-settings-icon'}
+            variant="text"
+            color="inherit"
+            size="initial"
+            className="text-primary-active"
+          >
+            <Icon name="settings" />
+          </IconButton>
+          <div className="text-black">
+            Drop Down
+          </div>
+        </Dropdown> */}
+        <Select
+          className="mt-2 text-white"
+          isClearable={false}
+          value={modelIndex}
+          data-cy="file-type"
+          onChange={value => {
+            setModelIndex([value.value]);
+          }}
+          hideSelectedOptions={false}
+          options={modelList}
+          getOptionLabel={(opt) => (<span title={opt.description}>{opt.label}</span>)}
+          placeholder="模型选择："
+        />
       </div>
       {/* show segmentation table */}
       <SegmentationGroupTable
