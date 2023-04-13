@@ -50,9 +50,11 @@ export default function interleaveTopToBottom({
    * listen to it and as the other viewports are created we can set the volumes for them
    * since volumes are already started loading.
    */
-  if (matchDetails.size !== viewportIdVolumeInputArrayMap.size) {
-    return;
-  }
+  /// #+核心代码修改：这说可以注释，那我就先注释吧，不然有点错好像
+  // if (matchDetails.size !== viewportIdVolumeInputArrayMap.size) {
+  //   return;
+  // }
+  /// #-
 
   // Check if all the matched volumes are loaded
   for (const [_, details] of displaySetsMatchDetails.entries()) {
@@ -70,7 +72,7 @@ export default function interleaveTopToBottom({
     return cache.getVolume(volumeId);
   });
 
-  // iterate over all volumes, and get their imageIds, and interleave
+  // iterate over all volumes, and  get their imageIds, and interleave
   // the imageIds and save them in AllRequests for later use
   const AllRequests = [];
   volumes.forEach(volume => {
@@ -89,6 +91,7 @@ export default function interleaveTopToBottom({
   const interleavedRequests = compact(flatten(zip(...AllRequests)));
 
   // set the finalRequests to the imageLoadPoolManager
+  // finalRequest里的元素又是从 AllRequests 里来的
   const finalRequests = [];
   interleavedRequests.forEach(request => {
     const { imageId } = request;
@@ -106,6 +109,10 @@ export default function interleaveTopToBottom({
   const requestType = Enums.RequestType.Prefetch;
   const priority = 0;
 
+  // 对finalRequests进行遍历，产生于上面
+  /// 其中的callloadImage，为每加载成功一个Instance的回调，
+  /// 来自于：BaseStreamingImageVolume.js的`const requests`(245行)
+  /// 会调用其中的handleArrayBufferLoad(更新PixelData)和successCallback(应当是通知更新)
   finalRequests.forEach(
     ({ callLoadImage, additionalDetails, imageId, imageIdIndex, options }) => {
       const callLoadImageBound = callLoadImage.bind(

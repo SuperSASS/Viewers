@@ -11,7 +11,8 @@ const sopClassUids = ['1.2.840.10008.5.1.4.1.1.66.4']; // SEG
 
 let loadPromises = {};
 
-// 1. 这个就是入口函数 - getDisplaySetsFromSeries
+// 这个就是入口函数 - getDisplaySetsFromSeries
+// 会生成SEG文件对应的displaySet
 function _getDisplaySetsFromSeries(
   instances,
   servicesManager,
@@ -32,10 +33,11 @@ function _getDisplaySetsFromSeries(
     wadoUriRoot,
   } = instance;
 
+  // 生成displaySet的默认基本属性
   const displaySet = {
     Modality: 'SEG',
     loading: false,
-    isReconstructable: true, // by default for now since it is a volumetric SEG currently
+    isReconstructable: true, // by default for now since it is a volumetric SEG currently，SEG现在也可以支持重构（比如在MPR视图显示）
     displaySetInstanceUID: utils.guid(),
     SeriesDescription,
     SeriesNumber,
@@ -59,20 +61,21 @@ function _getDisplaySetsFromSeries(
     wadoUri,
   };
 
+  // 得到SEG的参考(Reference)影像序列【为什么是Sequence？
   const referencedSeriesSequence = instance.ReferencedSeriesSequence;
 
   if (!referencedSeriesSequence) {
     throw new Error('ReferencedSeriesSequence is missing for the SEG');
   }
 
-  const referencedSeries = referencedSeriesSequence[0];
+  const referencedSeries = referencedSeriesSequence[0]; // 得到Referenced Series
 
-  displaySet.referencedImages =
-    instance.ReferencedSeriesSequence.ReferencedInstanceSequence;
+  // 将Reference属性加入到displaySet
+  displaySet.referencedImages = instance.ReferencedSeriesSequence.ReferencedInstanceSequence;
   displaySet.referencedSeriesInstanceUID = referencedSeries.SeriesInstanceUID;
 
-  // 这里应该是得到SEG文件参考Image文件的DisplaySet
-  // 对的，SEG文件里的"ReferencedSeriesSequence"里的"SeriesInstanceUID"记录的就是参照影像的UID
+  // 向displaySet加入获得参考Image影像的(reference)displaySet的函数，得到SEG文件参考Image文件的displaySet
+  // SEG文件里的"ReferencedSeriesSequence"里的"SeriesInstanceUID"记录的就是参照影像的UID
   displaySet.getReferenceDisplaySet = () => {
     const { displaySetService } = servicesManager.services;
     const referencedDisplaySets = displaySetService.getDisplaySetsForSeries(
@@ -96,35 +99,39 @@ function _getDisplaySetsFromSeries(
     return referencedDisplaySet;
   };
 
-  // 然后调用load函数
+  // 向displaySet加入**必要的**load函数，其异步，指向内部的_load函数
   displaySet.load = async ({ headers }) =>
     await _load(displaySet, servicesManager, extensionManager, headers);
 
   return [displaySet];
 }
 
-// 2. 应该是将要获得的SEG的DisplaySet中，重要的"segments"属性给加载出来
+/* 以下是具体读取Segment的函数 */
+
+// 1. 应该是将要获得的SEG的DisplaySet中，重要的"segments"属性给加载出来
 //    但这里会先考虑有没有缓存，真正的读取是在第3个函数里
 function _load(segDisplaySet, servicesManager, extensionManager, headers) {
   const { SOPInstanceUID } = segDisplaySet;
-  if (
+  if ( // 正在加载或加载完毕、且存在于这儿的loadPromises
     (segDisplaySet.loading || segDisplaySet.isLoaded) &&
     loadPromises[SOPInstanceUID]
   ) {
     return loadPromises[SOPInstanceUID];
   }
 
-  segDisplaySet.loading = true;
+  segDisplaySet.loading = true; // 👉Load，开始！！！……
 
   // We don't want to fire multiple loads, so we'll wait for the first to finish
   // and also return the same promise to any other callers.
   loadPromises[SOPInstanceUID] = new Promise(async (resolve, reject) => {
     const { segmentationService } = servicesManager.services;
 
+    // 如果缓存里有，那就886
     if (_segmentationExistsInCache(segDisplaySet, segmentationService)) {
       return;
     }
 
+    // 如果segments这个属性还没有加载出来，那就加载！转进，步骤2
     if (
       !segDisplaySet.segments ||
       Object.keys(segDisplaySet.segments).length === 0
@@ -137,7 +144,7 @@ function _load(segDisplaySet, servicesManager, extensionManager, headers) {
 
       segDisplaySet.segments = segments;
     }
-
+    // 回到这里，已经在这里处理好了所有segments
     const suppressEvents = true;
     segmentationService.createSegmentationForSEGDisplaySet(
       segDisplaySet,
@@ -157,7 +164,7 @@ function _load(segDisplaySet, servicesManager, extensionManager, headers) {
   return loadPromises[SOPInstanceUID];
 }
 
-// 3. 真正的获得"segments"属性
+// 2. 真正的获得"segments"属性
 async function _loadSegments(extensionManager, segDisplaySet, headers) {
   const utilityModule = extensionManager.getModuleEntry(
     '@ohif/extension-cornerstone.utilityModule.common'
@@ -181,20 +188,48 @@ async function _loadSegments(extensionManager, segDisplaySet, headers) {
     dataset.SegmentSequence = [dataset.SegmentSequence];
   }
 
-  const segments = _getSegments(dataset); // 又调用，把转换后的dataset传过去
+  const segments = _getSegments(dataset); // 👉又调用步骤3，把转换后的dataset(类似OHIF-Instance-Metadata)传过去
   return segments;
 }
 
-// 判断segmentation是不是已经在缓存里了
-function _segmentationExistsInCache(segDisplaySet, segmentationService) {
-  // This should be abstracted with the CornerstoneCacheService
-  const labelmapVolumeId = segDisplaySet.displaySetInstanceUID;
-  const segVolume = segmentationService.getLabelmapVolume(labelmapVolumeId);
+// 3. 然后是调用这个，把转换后的dataset传过来
+function _getSegments(dataset) {
+  const segments = {};
 
-  return segVolume !== undefined;
+  // SegmentSequence序列里就是所有的标签数，这里对每一个标签进行下述操作
+  dataset.SegmentSequence.forEach(segment => {
+    const cielab = segment.RecommendedDisplayCIELabValue;
+    /// √关键错误原因：这里的函数出错，应该是没定义标签或颜色？
+    /// 刘云杰那边没定义【已修复
+    const rgba = dcmjs.data.Colors.dicomlab2RGB(cielab).map(x =>
+      Math.round(x * 255)
+    );
+
+    rgba.push(255);
+    const segmentNumber = segment.SegmentNumber;
+
+    // 生成一个segment的关键信息，这里只赋了color和label
+    segments[segmentNumber] = {
+      color: rgba,
+      functionalGroups: [],
+      offset: null,
+      size: null,
+      pixelData: null,
+      label: segment.SegmentLabel,
+    };
+  });
+  // 到这里，segment根据dataset.SegmentSequence每一项，已经生成完成
+  // make a list of functional groups per segment
+  // functional groups可能就是参照影像的数组
+  dataset.PerFrameFunctionalGroupsSequence.forEach(functionalGroup => {
+    const segmentNumber = functionalGroup.SegmentIdentificationSequence.ReferencedSegmentNumber;
+    segments[segmentNumber].functionalGroups.push(functionalGroup);
+  });
+
+  return _getPixelData(dataset, segments);
 }
 
-// 5. 将 dataset 的 PixelData 转化为每一个 segment 里的 pixelData
+// 4. 将 dataset 的 PixelData 转化为每一个 segment 里的 pixelData
 function _getPixelData(dataset, segments) {
   let frameSize = Math.ceil((dataset.Rows * dataset.Columns) / 8);
   let nextOffset = 0;
@@ -219,6 +254,15 @@ function _getPixelData(dataset, segments) {
   });
 
   return segments;
+}
+
+// 判断segmentation是不是已经在缓存里了
+function _segmentationExistsInCache(segDisplaySet, segmentationService) {
+  // This should be abstracted with the CornerstoneCacheService
+  const labelmapVolumeId = segDisplaySet.displaySetInstanceUID;
+  const segVolume = segmentationService.getLabelmapVolume(labelmapVolumeId);
+
+  return segVolume !== undefined;
 }
 
 // 生成一些几何信息
@@ -271,44 +315,6 @@ function geometryFromFunctionalGroups(dataset, perFrame) {
   geometry.origin = planePosition.ImagePositionPatient.map(Number);
 
   return geometry;
-}
-
-// 4. 然后是调用这个，把转换后的dataset传过来
-function _getSegments(dataset) {
-  const segments = {};
-
-  // SegmentSequence序列里就是所有的标签数，这里对每一个标签进行下述操作
-  dataset.SegmentSequence.forEach(segment => {
-    const cielab = segment.RecommendedDisplayCIELabValue;
-    /// √关键错误原因：这里的函数出错，应该是没定义标签或颜色？
-    /// 刘云杰那边没定义【已修复
-    const rgba = dcmjs.data.Colors.dicomlab2RGB(cielab).map(x =>
-      Math.round(x * 255)
-    );
-
-    rgba.push(255);
-    const segmentNumber = segment.SegmentNumber;
-
-    // 生成一个segment的关键信息，这里只赋了color和label
-    segments[segmentNumber] = {
-      color: rgba,
-      functionalGroups: [],
-      offset: null,
-      size: null,
-      pixelData: null,
-      label: segment.SegmentLabel,
-    };
-  });
-
-  // make a list of functional groups per segment
-  // functional groups可能就是参照影像的数组
-  dataset.PerFrameFunctionalGroupsSequence.forEach(functionalGroup => {
-    const segmentNumber =
-      functionalGroup.SegmentIdentificationSequence.ReferencedSegmentNumber;
-    segments[segmentNumber].functionalGroups.push(functionalGroup);
-  });
-
-  return _getPixelData(dataset, segments);
 }
 
 function getSopClassHandlerModule({ servicesManager, extensionManager }) {

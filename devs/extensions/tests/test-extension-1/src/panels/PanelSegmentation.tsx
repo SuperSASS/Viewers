@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { SegmentationGroupTable, Button } from '@ohif/ui';
 
-import { ApplyModelAllType } from "../utils/api";
-import callInputDialog from '../utils/callInputDialog';
-import api from "../utils/api";
+import { ApplyModelAllType } from "../Utils/api";
+import callInputDialog from '../Utils/callInputDialog';
+import api from "../Utils/api";
 // import callColorPickerDialog from './callColorPickerDialog';
 
 export default function PanelSegmentation({
@@ -68,7 +68,8 @@ export default function PanelSegmentation({
   }, []);
   //#endregion
 
-  //#region 回调函数 - SegmentationGroupTable
+  //#region 回调函数 - SegmentationGroupTable - 有关Segmentation的
+  // Segmentation组切换最小化
   const onToggleMinimizeSegmentation = useCallback(
     id => {
       setIsMinimized(prevState => ({
@@ -83,29 +84,49 @@ export default function PanelSegmentation({
   //   SegmentationService.setActiveSegmentationForToolGroup(segmentationId);
   // };
 
+  // Segmentation组删除
   const onSegmentationDelete = (segmentationId: string) => {
     SegmentationService.remove(segmentationId);
   };
 
-  // const onSegmentationAdd = () => {
-  //   SegmentationService.addOrUpdateSegmentation(
-  //     {
-  //       id: segmentations ? 0 : segmentations[segmentations.length - 1].id + 1,
-  //       label: "新标签",
-  //     },
-  //     false, // suppress event
-  //     true // notYetUpdatedAtSource
-  //   );
-  // };
+  // Segmentation组修改名字
+  const onSegmentationEdit = segmentationId => {
+    const segmentation = SegmentationService.getSegmentation(segmentationId);
+    const { label } = segmentation;
 
-  const getToolGroupIds = segmentationId => {
-    const toolGroupIds = SegmentationService.getToolGroupIdsWithSegmentation(
-      segmentationId
-    );
-
-    return toolGroupIds;
+    callInputDialog(UIDialogService, label, (label, actionId) => {
+      if (label === '') {
+        return;
+      }
+      SegmentationService.addOrUpdateSegmentation(
+        {
+          id: segmentationId,
+          label,
+        },
+        false, // suppress event
+        true // notYetUpdatedAtSource
+      );
+    });
   };
 
+  // 切换整个Segmentation的可见性
+  const onToggleSegmentationVisibility = segmentationId => {
+    SegmentationService.toggleSegmentationVisibility(segmentationId);
+  };
+
+  const setSegmentationConfiguration = useCallback(
+    (segmentationId, key, value) => {
+      SegmentationService.setConfiguration({
+        segmentationId,
+        [key]: value,
+      });
+    },
+    [SegmentationService]
+  );
+  //#endregion
+
+  //#region 回调函数 - SegmentationGroupTable - 有关Segment的
+  // 点击后选中该Segment
   const onSegmentClick = (segmentationId, segmentIndex) => {
     SegmentationService.setActiveSegmentForSegmentation(
       segmentationId,
@@ -128,6 +149,38 @@ export default function PanelSegmentation({
     });
   };
 
+  // const onSegmentationAdd = () => {
+  //   SegmentationService.addOrUpdateSegmentation(
+  //     {
+  //       id: segmentations ? 0 : segmentations[segmentations.length - 1].id + 1,
+  //       label: "新标签",
+  //     },
+  //     false, // suppress event
+  //     true // notYetUpdatedAtSource
+  //   );
+  // };
+
+  const onSegmentAdd = () => {
+    const segmentations = SegmentationService.getSegmentations();
+    const segmentationId = segmentations[0].id;
+    let newSegmentIndex = 0;
+    for (const segment of segmentations[0].segments) { // 求得最大的segmentIndex
+      if (!segment)
+        continue;
+      newSegmentIndex = Math.max(segment.segmentIndex, newSegmentIndex);
+    }
+    const toolGroupIds = getToolGroupIds(segmentationId);
+    SegmentationService.addSegment(
+      segmentationId,
+      newSegmentIndex + 1,
+      toolGroupIds[0],
+      {
+        label: "新标签"
+      }
+    );
+  }
+
+  // 单个Segment编辑名字
   const onSegmentEdit = (segmentationId, segmentIndex) => {
     const segmentation = SegmentationService.getSegmentation(segmentationId);
 
@@ -147,31 +200,13 @@ export default function PanelSegmentation({
     });
   };
 
-  const onSegmentationEdit = segmentationId => {
-    const segmentation = SegmentationService.getSegmentation(segmentationId);
-    const { label } = segmentation;
-
-    callInputDialog(UIDialogService, label, (label, actionId) => {
-      if (label === '') {
-        return;
-      }
-
-      SegmentationService.addOrUpdateSegmentation(
-        {
-          id: segmentationId,
-          label,
-        },
-        false, // suppress event
-        true // notYetUpdatedAtSource
-      );
-    });
-  };
-
+  // 单个Segment切换颜色
   const onSegmentColorClick = (segmentationId, segmentIndex) => {
-    // Todo: Implement color picker later
+    console.log(1);
     return;
   };
 
+  // 单个Segment删除
   const onSegmentDelete = (segmentationId, segmentIndex) => {
     SegmentationService.removeSegment(
       segmentationId,
@@ -180,11 +215,7 @@ export default function PanelSegmentation({
     // console.warn('not implemented yet');
   };
 
-  // const onSegmentAdd = (segmentationId) => {
-  //   SegmentationService.addSegmentationRepresentationToToolGroup('default', segmentationId);
-  //   SegmentationService.addSegment(segmentationId, 0, 'default', { label: "新标签" });
-  // }
-
+  // 切换单个Segment的可见性
   const onToggleSegmentVisibility = (segmentationId, segmentIndex) => {
     const segmentation = SegmentationService.getSegmentation(segmentationId);
     const segmentInfo = segmentation.segments[segmentIndex];
@@ -201,23 +232,18 @@ export default function PanelSegmentation({
       );
     });
   };
-
-  const onToggleSegmentationVisibility = segmentationId => {
-    SegmentationService.toggleSegmentationVisibility(segmentationId);
-  };
-
-  const setSegmentationConfiguration = useCallback(
-    (segmentationId, key, value) => {
-      SegmentationService.setConfiguration({
-        segmentationId,
-        [key]: value,
-      });
-    },
-    [SegmentationService]
-  );
   //#endregion
 
-  //#region
+
+  const getToolGroupIds = segmentationId => {
+    const toolGroupIds = SegmentationService.getToolGroupIdsWithSegmentation(
+      segmentationId
+    );
+
+    return toolGroupIds;
+  };
+
+  //#region 回调函数 - 应用模型分割
   const onApplyModelClick = async () => {
     const id = UINotificationService.show({
       title: "AI模型分割中……",
@@ -292,7 +318,7 @@ export default function PanelSegmentation({
         onToggleSegmentationVisibility={onToggleSegmentationVisibility}
         onToggleMinimizeSegmentation={onToggleMinimizeSegmentation}
         onSegmentClick={onSegmentClick}
-        // onSegmentAdd={onSegmentAdd}
+        onSegmentAdd={onSegmentAdd}
         onSegmentDelete={onSegmentDelete}
         onSegmentEdit={onSegmentEdit}
         onSegmentColorClick={onSegmentColorClick}

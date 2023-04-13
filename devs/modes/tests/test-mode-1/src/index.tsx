@@ -23,6 +23,7 @@ const viewports = {
   cornerstone: '@ohif/extension-cornerstone.viewportModule.cornerstone',
   measurement: '@ohif/extension-measurement-tracking.viewportModule.cornerstone-tracked',
   dicomSeg: "@ohif/extension-cornerstone-dicom-seg.viewportModule.dicom-seg",
+  vtk: "test-extension-1.viewportModule.vtk",
   // dicompdf: '@ohif/extension-dicom-pdf.viewportModule.dicom-pdf',
 }
 
@@ -35,7 +36,7 @@ const sopClassHandlers = {
 const hangingProtocols = {
   ohif_default: '@ohif/extension-default.hangingProtocolModule.default',
   CocketBoat_default: "CocketBoat_HP_default",
-  mpr: '@ohif/extension-cornerstone.hangingProtocolModule.mpr',
+  mpr: "mpr", //'@ohif/extension-cornerstone.hangingProtocolModule.mpr',
   // ptCT: '@ohif/extension-tmtv.hangingProtocolModule.ptCT'
 }
 
@@ -144,17 +145,21 @@ function modeFactory({ modeConfiguration }) {
               rightPanels: [rightPanels.measure, rightPanels.segment, rightPanels.test],
               viewports: [
                 {
-                  namespace: viewports.measurement,
-                  displaySetsToDisplay: [sopClassHandlers.default],
-                },
-                {
-                  namespace: viewports.dicomSeg,
-                  displaySetsToDisplay: [sopClassHandlers.dicomSeg],
-                },
-                {
                   namespace: viewports.cornerstone,
                   displaySetsToDisplay: [sopClassHandlers.default],
                 },
+                // {
+                //   namespace: viewports.dicomSeg,
+                //   displaySetsToDisplay: [sopClassHandlers.dicomSeg],
+                // },
+                // {
+                //   namespace: viewports.cornerstone,
+                //   displaySetsToDisplay: [sopClassHandlers.default],
+                // },
+                {
+                  namespace: viewports.dicomSeg,
+                  displaySetsToDisplay: [sopClassHandlers.dicomSeg],
+                }
               ],
             },
           };
@@ -162,7 +167,7 @@ function modeFactory({ modeConfiguration }) {
       },
     ],
     extensions: extensionDependencies,
-    hangingProtocol: hangingProtocols.CocketBoat_default, //hangingProtocols.CocketBoat_default,
+    hangingProtocol: hangingProtocols.CocketBoat_default,
     sopClassHandlers: [sopClassHandlers.default, sopClassHandlers.dicomSeg],
     hotkeys: [...hotkeys.defaults.hotkeyBindings],
   };

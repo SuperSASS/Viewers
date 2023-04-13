@@ -14,17 +14,34 @@ const EVENTS = {
  * @example
  * studies: [
  *   {
+ *     // Study层级属性
  *     StudyInstanceUID: string,
- *     isLoaded: boolean,
+ *     StudyDescription: string | undefined
+ *     isLoaded: boolean, // 是否加载完成吧
+ *     ModalitiesInstudy: Array<string>, // 拥有的所有影像类型
+ *     NumberOfStudyRelatedSeries: number, // 应该是Series数量吧
+ *     // 函数
+ *     setSeriesMetadata: function(SeriesInstanceUID, seriesMetadata), // 就是设置指定SeriesUid为OHIF-Series-Metadata
+ *     addInstance(s)ToSeries: function(instance(s)), // 把OHIF-Instance-Metadata加入到该Study下的对应Sereis
+ *     // 该Study所有的Series
  *     series: [
  *       {
- *         Modality: string,
+ *         // Study层级属性
+ *         StudyInstanceUID: string,
+ *         StudyDescription: string | undefined,
+ *         // Series层级属性
  *         SeriesInstanceUID: string,
- *         SeriesNumber: number,
- *         SeriesDescription: string,
+ *         SeriesDescription: string | undefined,
+ *         SOPClassUID
+ *         SeriesNumber: number | null,
+ *         SeriesTime: string,
+ *         Modality: string,
+ *         // OHIF专属属性
+ *         ProtocolName: string | undefined,
+ *         // 该Series所有的Instances
  *         instances: [
  *           {
- *             // naturalized instance metadata
+ *             // 类型为OHIF-Instance-Metadata(naturalized instance metadata)
  *             SOPInstanceUID: string,
  *             SOPClassUID: string,
  *             Rows: number,
@@ -32,6 +49,9 @@ const EVENTS = {
  *             PatientSex: string,
  *             Modality: string,
  *             InstanceNumber: string,
+ *             imageId: string,
+ *             PixelData: object,
+ *             ...
  *           },
  *           {
  *             // instance 2
@@ -43,22 +63,26 @@ const EVENTS = {
  *       },
  *     ],
  *   },
+ *   { study 2 }
  * ],
  */
 const _model = {
   studies: [],
 };
 
+// 得到存储的所有StudyInstanceUIDs
 function _getStudyInstanceUIDs() {
   return _model.studies.map(aStudy => aStudy.StudyInstanceUID);
 }
 
+// 根据StudyInstanceUID，得到对应的OHIF-Study-Metadata
 function _getStudy(StudyInstanceUID) {
   return _model.studies.find(
     aStudy => aStudy.StudyInstanceUID === StudyInstanceUID
   );
 }
 
+// 根据[Study+Series]InstanceUID，得到对应的OHIF-Series-Metadata
 function _getSeries(StudyInstanceUID, SeriesInstanceUID) {
   const study = _getStudy(StudyInstanceUID);
 
@@ -71,6 +95,7 @@ function _getSeries(StudyInstanceUID, SeriesInstanceUID) {
   );
 }
 
+// 根据[Study+Series+SOP]InstanceUID，得到对应的OHIF-Instance-Metadata
 function _getInstance(StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID) {
   const series = _getSeries(StudyInstanceUID, SeriesInstanceUID);
 
@@ -83,6 +108,7 @@ function _getInstance(StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID) {
   );
 }
 
+// 根据imageId，得到属于该imageId的OHIF-Instance-Metadata
 function _getInstanceByImageId(imageId) {
   for (const study of _model.studies) {
     for (const series of study.series) {
@@ -96,11 +122,13 @@ function _getInstanceByImageId(imageId) {
 }
 
 /**
+ * 更新某一特定Series（根据UID指定）的OHIF-eries-Metadata
+ * 会广播事件：SERIES_UPDATED
  * Update the metadata of a specific series
- * @param {*} StudyInstanceUID
- * @param {*} SeriesInstanceUID
- * @param {*} metadata metadata inform of key value pairs
- * @returns
+ * @param {*} StudyInstanceUID StudyUID
+ * @param {*} SeriesInstanceUID SeriesUID
+ * @param {*} metadata 为OHIF-Series-Metadata格式
+ * @returns none
  */
 function _updateMetadataForSeries(
   StudyInstanceUID,
@@ -144,6 +172,8 @@ function _updateMetadataForSeries(
 const BaseImplementation = {
   EVENTS,
   listeners: {},
+  // 增加Instance，感觉格式为Raw-Instance-Metadata?
+  // 由于不清楚参数格式，所以暂不详细理解
   addInstance(dicomJSONDatasetOrP10ArrayBuffer) {
     let dicomJSONDataset;
 
@@ -181,6 +211,9 @@ const BaseImplementation = {
 
     study.addInstanceToSeries(naturalizedDataset);
   },
+  // 增加一系列Instances，格式就为Array<OHIF-Instance-Metadata>
+  // 会执行操作：把Instances添加到_model中对应的Series里
+  // 会发布事件：INSTANCES_ADDED（注意有S哈，实际上应该是SERIES(单数)_ADDED）
   addInstances(instances, madeInClient = false) {
     const { StudyInstanceUID, SeriesInstanceUID } = instances[0];
 

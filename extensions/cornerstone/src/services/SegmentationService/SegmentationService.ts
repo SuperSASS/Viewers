@@ -567,6 +567,7 @@ class SegmentationService {
 
     // Force use of a Uint8Array SharedArrayBuffer for the segmentation to save space and so
     // it is easily compressible in worker thread.
+    // ⭐这个应该是最终用来渲染的体素Volume
     const derivedVolume = await volumeLoader.createAndCacheDerivedVolume(
       referencedVolumeId,
       {
@@ -600,7 +601,7 @@ class SegmentationService {
       let segmentY = 0;
       let segmentZ = 0;
       let count = 0;
-
+      // 以下部分可能是加载Referenced(Derivation) Image的数据(functionGroupPixelData)的
       for (const [
         functionalGroupIndex,
         functionalGroup,
@@ -638,12 +639,12 @@ class SegmentationService {
           i < functionalGroupEndIndex;
           i++, j++
         ) {
-          if (functionGroupPixelData[j] !== 0) {
-            if (derivedVolumeScalarData[i] !== 0) {
+          if (functionGroupPixelData[j] !== 0) { // 如果functionGroupPixelData某一像素值不为0，证明该点属于分割(Segment)点，进行计算
+            if (derivedVolumeScalarData[i] !== 0) { // 应该表示有同样的点
               overlappingSegments = true;
             }
 
-            derivedVolumeScalarData[i] = segmentIndex;
+            derivedVolumeScalarData[i] = segmentIndex; // 在derivedVolumeScalarData存储当前标签index
 
             // centroid calculations
             segmentX += i % columns;
@@ -661,6 +662,7 @@ class SegmentationService {
 
       const centerWorld = derivedVolume.imageData.indexToWorld([x, y, z]);
 
+      // 记录中心点
       segmentationSchema.cachedStats = {
         ...segmentationSchema.cachedStats,
         segmentCenter: {
@@ -724,6 +726,9 @@ class SegmentationService {
       segmentationId,
       segDisplaySet,
       overlappingSegments,
+      /// #+核心代码修改：这里广播的时候会传加载好的Volume，供vtkViewport用！
+      derivedVolume,
+      /// #-
     });
 
     return this.addOrUpdateSegmentation(segmentationSchema, suppressEvents);

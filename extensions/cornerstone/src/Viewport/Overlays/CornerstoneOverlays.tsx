@@ -64,6 +64,7 @@ function CornerstoneOverlays(props) {
         element={element}
       />
 
+      {/* 不知道干嘛的，总是没用（一来就被销毁） */}
       <ViewportImageSliceLoadingIndicator
         viewportData={viewportData}
         element={element}

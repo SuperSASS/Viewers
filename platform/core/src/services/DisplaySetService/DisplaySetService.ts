@@ -17,7 +17,9 @@ const findInSet = (instance, list) => {
 };
 
 /**
- * Find an instance in a display set
+ * Find an instance in a display set【？这在扯皮呢，明明是display sets……
+ * 判断给定的instance是否存在于displaySets中，但存在缺陷
+ * 根据images或others【这是啥】来判断，会导致SEG无法判断
  * @returns true if found
  */
 const findInstance = (instance, displaySets) => {
@@ -180,6 +182,7 @@ export default class DisplaySetService extends PubSubService {
         displaySetsAdded = [...displaySetsAdded, displaySets];
       }
     } else {
+      // 一般直接进这里来，先通过instances，变成displaySet
       const displaySets = this.makeDisplaySetForInstances(input, settings);
 
       displaySetsAdded = displaySets;
@@ -194,8 +197,8 @@ export default class DisplaySetService extends PubSubService {
     // TODO: This is tricky. How do we know we're not resetting to the same/existing DSs?
     // TODO: This is likely run anytime we touch DicomMetadataStore. How do we prevent unnecessary broadcasts?
     if (displaySetsAdded && displaySetsAdded.length) {
-      this._broadcastEvent(EVENTS.DISPLAY_SETS_CHANGED, this.activeDisplaySets);
-      this._broadcastEvent(EVENTS.DISPLAY_SETS_ADDED, {
+      this._broadcastEvent(EVENTS.DISPLAY_SETS_CHANGED, this.activeDisplaySets); // 这个事件对于LeftPenel有订阅
+      this._broadcastEvent(EVENTS.DISPLAY_SETS_ADDED, { // 一样对于LeftPenel有订阅【多了个不管的dicom-sr
         displaySetsAdded,
         options,
       });
@@ -215,12 +218,17 @@ export default class DisplaySetService extends PubSubService {
     this.activeDisplaySets.length = 0;
   }
 
+  /**
+   * 通过instances，生成displaySets
+   * 副作用：会添加到`displaySetCache`缓存中、以及`activeDisplaySets`活跃displaySet中
+   * @returns displaySets
+   */
   makeDisplaySetForInstances(instancesSrc, settings) {
     let instances = instancesSrc;
     const instance = instances[0];
 
-    const existingDisplaySets =
-      this.getDisplaySetsForSeries(instance.SeriesInstanceUID) || [];
+    // 尝试获取该SeriesUID的displaySet（如果之前创建过的话）（在缓存displaySetCache中获取）
+    const existingDisplaySets = this.getDisplaySetsForSeries(instance.SeriesInstanceUID) || [];
 
     const SOPClassHandlerIds = this.SOPClassHandlerIds;
     let allDisplaySets;
@@ -229,41 +237,48 @@ export default class DisplaySetService extends PubSubService {
       const SOPClassHandlerId = SOPClassHandlerIds[i];
       const handler = this.extensionManager.getModuleEntry(SOPClassHandlerId);
 
+      // 只有该sopClassHandler可以应用到该instance上才继续
       if (handler.sopClassUids.includes(instance.SOPClassUID)) {
         // Check if displaySets are already created using this SeriesInstanceUID/SOPClassHandler pair.
+        // 检查该SeriesInstanceUID(来自instance)需要的displaySet是否已经在该SOPClassHandler下被创建了，有的话直接get
         let displaySets = existingDisplaySets.filter(
           displaySet => displaySet.SOPClassHandlerId === SOPClassHandlerId
         );
 
-        if (displaySets.length) {
-          this._addActiveDisplaySets(displaySets);
+        if (displaySets.length) { // 如果确实已经创建过了
+          this._addActiveDisplaySets(displaySets); // 虽然我不明白这里为什么又要添加到activeDisplaySets里【因为存在的话，之前肯定添加过了【但说不定会进行inactive操作呢！】】，但这个函数会防止重复，那就去做吧……
         } else {
           displaySets = handler.getDisplaySetsFromSeries(instances);
 
           if (!displaySets || !displaySets.length) continue;
 
           // applying hp-defined viewport settings to the displaysets
+          // 应用HangingProtocol在Viewport的设置到displaySets上
           displaySets.forEach(ds => {
             Object.keys(settings).forEach(key => {
               ds[key] = settings[key];
             });
           });
 
-          this._addDisplaySetsToCache(displaySets);
-          this._addActiveDisplaySets(displaySets);
+          this._addDisplaySetsToCache(displaySets); // 添加到缓存中
+          this._addActiveDisplaySets(displaySets); // 添加到活跃的displaySet中
 
+          // 筛选不在displaySet里的instance，用于之后提前return，但筛选函数findInstance存在缺陷
+          /// 对于CT类型，一般直接给筛没，所以后面会提前return
+          /// 对于SEG类型，一般原来有1个instance，筛选完后还是1个，虽然其实已经解析并加到了DisplaySet里，但还会继续解析
           instances = instances.filter(
             instance => !findInstance(instance, displaySets)
           );
         }
 
-        allDisplaySets = allDisplaySets
+        allDisplaySets = allDisplaySets // 将displaySets加到allDisplaySets中
           ? [...allDisplaySets, ...displaySets]
           : displaySets;
 
-        if (!instances.length) return allDisplaySets;
+        if (!instances.length) return allDisplaySets; // 所以在这，CT已经加完到displaySet直接return；SEL还会继续判断剩下的sopClassHandler
       }
     }
     return allDisplaySets;
+    // 最终返回所解析的所有displaySets
   }
 }

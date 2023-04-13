@@ -4,7 +4,7 @@ import {
   ctCORONAL,
   ctSAGITTAL,
   mipSAGITTAL,
-} from "../common/HangingProtocolModuleConfig"
+} from "../Common/HangingProtocolModuleConfig"
 
 const stage_default = {
   name: '默认2*2状态（类似ITK-SNAP）',
