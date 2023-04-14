@@ -30,6 +30,7 @@ import launchInfo from './../../assets/icons/launch-info.svg';
 import link from './../../assets/icons/link.svg';
 import listBullets from './../../assets/icons/list-bullets.svg';
 import lock from './../../assets/icons/lock.svg';
+import unlock from './../../assets/icons/unlock.svg';
 import logoOhifSmall from './../../assets/icons/logo-ohif-small.svg';
 import magnifier from './../../assets/icons/magnifier.svg';
 import notificationwarningDiamond from './../../assets/icons/notificationwarning-diamond.svg';
@@ -118,6 +119,7 @@ import oldTrash from './../../assets/icons/old-trash.svg';
 import oldPlay from './../../assets/icons/old-play.svg';
 import oldStop from './../../assets/icons/old-stop.svg';
 
+/** Others */
 import upload from './../../assets/icons/upload.svg';
 
 const ICONS = {
@@ -153,6 +155,7 @@ const ICONS = {
   link: link,
   'list-bullets': listBullets,
   lock: lock,
+  unlock: unlock,
   'logo-ohif-small': logoOhifSmall,
   magnifier: magnifier,
   exclamation: exclamation,

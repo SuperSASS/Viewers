@@ -7,7 +7,7 @@ import callReprocessDialog from '../utils/callReprocessDialog';
 import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType } from "../../../../../utils/api";
 import callColorDialog from '../Utils/callColorDialog';
 
-// import callColorPickerDialog from './callColorPickerDialog';
+import calculateVolume from "../Utils/Segmentation/calcVolume"
 
 type ModelListType = {
   value: string;
@@ -31,10 +31,10 @@ export default function PanelSegmentation({
   } = servicesManager.services;
 
   //#region 状态
-  // 所选择的分割标签的ID
-  const [selectedSegmentationId, setSelectedSegmentationId] = useState(null);
+  // 所选择的分割标签 组 的ID，但暂时没用
+  // const [selectedSegmentationId, setSelectedSegmentationId] = useState(null);
   // 初始化的分割配置（应该就是Appearance）
-  const [initialSegmentationConfigurations, setInitialSegmentationConfigurations,] = useState(SegmentationService.getConfiguration());
+  const [initialSegmentationConfigurations, setInitialSegmentationConfigurations] = useState(SegmentationService.getConfiguration());
   // 加载得到的segmentations数据
   const [segmentations, setSegmentations] = useState(() => SegmentationService.getSegmentations());
   // 最小化
@@ -46,19 +46,8 @@ export default function PanelSegmentation({
   //#endregion
 
   //#region 副作用（初始化/监听）
-  // Only expand the last segmentation added to the list and collapse the rest
-  useEffect(() => {
-    const lastSegmentationId = segmentations[segmentations.length - 1]?.id;
-    if (lastSegmentationId) {
-      setIsMinimized(prevState => ({
-        ...prevState,
-        [lastSegmentationId]: false,
-      }));
-    }
-  }, [segmentations, setIsMinimized]);
-
   // 初始化 - 订阅Segmentation服务的事件
-  useEffect(async () => {
+  useEffect(() => {
     const subscriptions = [] as any[];
     const eventAdded = SegmentationService.EVENTS.SEGMENTATION_ADDED;
     const eventUpdated = SegmentationService.EVENTS.SEGMENTATION_UPDATED;
@@ -85,7 +74,6 @@ export default function PanelSegmentation({
       })
       setModelList(modelList);
     })
-
     // setModelList([{ value: "0", label: "测试1", description: "悬浮文字1" }, { value: "1", label: "测试2", description: "悬浮文字2" }]); //仅供测试
 
     return () => {
@@ -94,6 +82,36 @@ export default function PanelSegmentation({
       });
     };
   }, []);
+
+  // 监听 - 设置最小化
+  useEffect(() => {
+    const lastSegmentationId = segmentations[segmentations.length - 1]?.id;
+    if (lastSegmentationId) {
+      setIsMinimized(prevState => ({
+        ...prevState,
+        [lastSegmentationId]: false,
+      }));
+    }
+  }, [segmentations, setIsMinimized]);
+
+  // 监听 - 当标签发生更改时，重新计算体积
+  useEffect(() => {
+    const segmentations = SegmentationService.getSegmentations();
+    if (!segmentations.length) // 还没有segmentation组，不处理返回
+      return;
+    const volumes = calculateVolume(segmentations, SegmentationService);
+    segmentations[0].segments.forEach((segment) => {
+      if (!segment)
+        return;
+      segment.displayText = [`体积: ${volumes[segment.segmentIndex].toFixed(2)} ml`];
+    })
+
+    // SegmentationService.addOrUpdateSegmentation(
+    //   segmentations[0],
+    //   false,
+    //   true // 不更新到数据源上？
+    // );
+  }, [segmentations]);
   //#endregion
 
   //#region 回调函数 - SegmentationGroupTable - 有关Segmentation的
@@ -142,11 +160,11 @@ export default function PanelSegmentation({
     SegmentationService.toggleSegmentationVisibility(segmentationId);
   };
 
-  // 设置Segmentation组的配置【不知道干啥的
+  // 设置Segmentation组的配置，就是上面标签展示设置的各种选项的回调
   const setSegmentationConfiguration = useCallback(
-    (segmentationId, key, value) => {
+    (key, value) => {
       SegmentationService.setConfiguration({
-        segmentationId,
+        // segmentationId, // 这个展示OHIF还没实现，不根据segmentation组来设置配置，而是全局的
         [key]: value,
       });
     },
@@ -274,6 +292,18 @@ export default function PanelSegmentation({
       );
     });
   };
+
+  // 切换单个Segment的上锁状态【防止被别的标签编辑
+  const onTogglgSegmentLock = (segmentationId, segmentIndex) => {
+    const segmentation = SegmentationService.getSegmentation(segmentationId);
+    const segmentInfo = segmentation.segments[segmentIndex];
+    const isLocked = !segmentInfo.isLocked;
+    SegmentationService.setSegmentLockedForSegmentation(
+      segmentationId,
+      segmentIndex,
+      isLocked
+    );
+  }
   //#endregion
 
   //#region 回调函数 - 按钮
@@ -301,7 +331,7 @@ export default function PanelSegmentation({
     const data: ApplyModelAllType = {
       studyUid,
       seriesUid,
-      ModelId: modelIndex[0],
+      ModelId: modelIndex,
     };
 
     try {
@@ -393,72 +423,40 @@ export default function PanelSegmentation({
   };
   //#endregion
 
+  //#region 临时组件
+  const SplitLine = () => {
+    return (<div className='border-b my-4 w-1/2 mx-auto' />);
+  }
+  //#endregion
+
   return (
-    <div className="flex flex-col flex-auto min-h-0 mt-1">
-      <div className="flex mx-4 my-4 space-x-4 justify-center">
-        <Button onClick={onApplyModelClick} color="primary">
-          应用模型分割
-        </Button>
-      </div>
-      <div className="flex mx-4 my-4 space-x-4 justify-center">
-        <Button onClick={OnModelUpload} color="primary">
-          上传模型
-        </Button>
-      </div>
-      <div className="flex mx-4 my-4 space-x-4 justify-center">
-        <Button onClick={OnReprocess} color="primary">
-          自定义后处理
-        </Button>
-      </div>
-      <div className="flex mx-4 my-4 space-x-4 justify-center">
-        <Button onClick={onDownloadSeg} color="primary">
-          导出
-        </Button>
-      </div>
-      <div className="flex h-32">
-        {/* <Dropdown
-          id="dropdown-1"
-          list={[
-            {
-              icon: 'clipboard',
-              onClick: () => { },
-              title: 'Item 1'
-            },
-            {
-              icon: 'tracked',
-              onClick: function noRefCheck() { },
-              title: 'Item 2'
-            }
-          ]}
-        >
-          <IconButton
-            id={'options-settings-icon'}
-            variant="text"
-            color="inherit"
-            size="initial"
-            className="text-primary-active"
-          >
-            <Icon name="settings" />
-          </IconButton>
-          <div className="text-black">
-            Drop Down
-          </div>
-        </Dropdown> */}
+    <div className="flex flex-col flex-auto min-h-0 h-full mt-1">
+      {/* 模型相关 */}
+      <div className="flex flex-col">
         <Select
-          className="mt-2 text-white"
+          className="h-32 mt-2 text-white"
           isClearable={false}
           value={modelIndex}
           data-cy="file-type"
           onChange={value => {
-            setModelIndex([value.value]);
+            setModelIndex(value.value);
           }}
           hideSelectedOptions={false}
           options={modelList}
           getOptionLabel={(opt) => (<span title={opt.description}>{opt.label}</span>)}
           placeholder="模型选择："
         />
+        <div className='flex flex-row mt-4 space-x-4 justify-center'>
+          <Button onClick={OnModelUpload} color="primary">
+            上传模型
+          </Button>
+          <Button onClick={onApplyModelClick} color="primary">
+            应用模型分割
+          </Button>
+        </div>
+        <SplitLine />
       </div>
-      {/* show segmentation table */}
+      {/* 标签组 */}
       <SegmentationGroupTable
         segmentations={segmentations}
         segmentationConfig={{
@@ -481,57 +479,63 @@ export default function PanelSegmentation({
         onSegmentDelete={onSegmentDelete}
         onSegmentEdit={onSegmentEdit}
         onSegmentColorClick={onSegmentColorClick}
+        onToggleSegmentLock={onTogglgSegmentLock}
         onToggleSegmentVisibility={onToggleSegmentVisibility}
         setRenderOutline={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'renderOutline',
             value
           )
         }
         setOutlineOpacityActive={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'outlineOpacity',
             value
           )
         }
         setRenderFill={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'renderFill',
             value
           )
         }
         setRenderInactiveSegmentations={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'renderInactiveSegmentations',
             value
           )
         }
         setOutlineWidthActive={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'outlineWidthActive',
             value
           )
         }
         setFillAlpha={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'fillAlpha',
             value
           )
         }
         setFillAlphaInactive={value =>
           setSegmentationConfiguration(
-            selectedSegmentationId,
             'fillAlphaInactive',
             value
           )
         }
       />
+      {/* 后处理 */}
+      <div className=' mt-auto'>
+        <SplitLine />
+        <div className='flex flex-row my-4 space-x-4 justify-center'>
+          <Button onClick={OnReprocess} color="primary">
+            上传后处理脚本
+          </Button>
+          <Button onClick={onDownloadSeg} color="primary">
+            导出标签文件
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

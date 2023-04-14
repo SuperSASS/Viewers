@@ -1,10 +1,9 @@
 {
-  "Patient Sex": "",
-  "Patient Weight (kg)": "",
-  "Total Dose (bq)": "",
-  "Half Life (s)": "",
-  "Injection Time (s)": "",
-  "Acquisition Time (s)": "",
-  "ROI Threshold Configuration": "",
-  "Segmentations": ""
+  "Patient Sex": "患者性别",
+  "Patient Weight (kg)": "患者体重(kg)",
+  "Total Dose (bq)": "总剂量(bq)",
+  "Half Life (s)": "半衰期(s)",
+  "Injection Time (s)": "注入时间(s)",
+  "Acquisition Time (s)": "采集时间(s)",
+  "Reload Data": "重载数据"
 }

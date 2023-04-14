@@ -1,0 +1,9 @@
+{
+  "ROI Threshold Configuration": "ROI阈值配置",
+  "Segmentations": "标签列表",
+  "loading ...": "创建中……",
+  "New Label": "新标签",
+  "Run": "分割",
+  "Export CSV": "导出为CSV",
+  "Create RT Report": "创建RT报告"
+}

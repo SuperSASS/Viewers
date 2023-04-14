@@ -4,7 +4,6 @@ const toolGroupIds = {
   mip: "mipToolGroup",
 }
 
-
 // TODO: torn, can either bake this here; or have to create a whole new button type
 // Only ways that you can pass in a custom React component for render :l
 import {
@@ -215,6 +214,68 @@ const toolbarButtons = [
             },
           ],
           'Ellipse Tool'
+        ),
+      ],
+    },
+  },
+  // 分割 组别
+  {
+    id: 'SegmentationTools',
+    type: 'ohif.splitButton',
+    props: {
+      groupId: 'SegmentationTools',
+      isRadio: true, // 是顶替型组别
+      primary: _createToolButton(
+        'Brush', // id
+        'tool-magnify', // icon
+        '笔刷', // label
+        [ // command
+          {
+            commandName: 'setToolActive',
+            commandOptions: {
+              toolName: 'Brush',
+            },
+            context: 'CORNERSTONE',
+          },
+        ],
+        'Brush' // uiType
+      ),
+      secondary: {
+        icon: 'chevron-down',
+        label: '',
+        isActive: true,
+        tooltip: '更多分割工具',
+      },
+      items: [
+        _createToolButton(
+          'Brush', // id
+          'tool-magnify', // icon
+          '笔刷', // label
+          [ // command
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'Brush',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Brush' // uiType
+        ),
+        _createToolButton(
+          'BrushEraser', // id
+          'arrow-down', // icon
+          '橡皮檫', // label
+          [ // command
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'BrushEraser',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'BrushEraser' // uiType
         ),
       ],
     },

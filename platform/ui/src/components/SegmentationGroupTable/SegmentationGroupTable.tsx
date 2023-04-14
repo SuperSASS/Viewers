@@ -49,6 +49,7 @@ const SegmentationGroupTable = ({
   onSegmentEdit,
   onSegmentColorClick,
   onToggleSegmentVisibility,
+  onToggleSegmentLock, // 新增上锁切换
   setFillAlpha,
   setFillAlphaInactive,
   setOutlineWidthActive,
@@ -109,6 +110,7 @@ const SegmentationGroupTable = ({
                 onSegmentClick={onSegmentClick}
                 onSegmentEdit={onSegmentEdit}
                 onToggleSegmentVisibility={onToggleSegmentVisibility}
+                onToggleSegmentLock={onToggleSegmentLock} // 新增上锁切换
                 onToggleSegmentationVisibility={onToggleSegmentationVisibility}
                 showSegmentDelete={showDeleteSegment}
               />
@@ -129,28 +131,38 @@ const SegmentationGroupTable = ({
 };
 
 SegmentationGroupTable.propTypes = {
-  title: PropTypes.string.isRequired,
   segmentations: PropTypes.array.isRequired,
-  activeSegmentationId: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onToggleLocked: PropTypes.func,
-  onToggleVisibility: PropTypes.func.isRequired,
-  onToggleVisibilityAll: PropTypes.func.isRequired,
+  activeSegmentationId: PropTypes.string,
   segmentationConfig: PropTypes.object,
+  showAddSegmentation: PropTypes.bool,
+  showAddSegment: PropTypes.bool,
+  showDeleteSegment: PropTypes.bool,
+  isMinimized: PropTypes.object,
+  onSegmentationAdd: PropTypes.func,
+  onSegmentationEdit: PropTypes.func,
+  onSegmentationClick: PropTypes.func,
+  onSegmentationDelete: PropTypes.func,
+  onToggleSegmentationVisibility: PropTypes.func,
+  onToggleMinimizeSegmentation: PropTypes.func,
+  onSegmentClick: PropTypes.func,
+  onSegmentAdd: PropTypes.func,
+  onSegmentDelete: PropTypes.func,
+  onSegmentEdit: PropTypes.func,
+  onSegmentColorClick: PropTypes.func,
+  onToggleSegmentVisibility: PropTypes.func,
+  onToggleSegmentLock: PropTypes.func, // 新增上锁切换
+  setFillAlpha: PropTypes.func,
+  setFillAlphaInactive: PropTypes.func,
+  setOutlineWidthActive: PropTypes.func,
+  setOutlineOpacityActive: PropTypes.func,
+  setRenderFill: PropTypes.func,
+  setRenderInactiveSegmentations: PropTypes.func,
+  setRenderOutline: PropTypes.func,
 };
 
 SegmentationGroupTable.defaultProps = {
-  title: '',
   segmentations: [],
   activeSegmentationId: '',
-  onClick: () => { },
-  onEdit: () => { },
-  onDelete: () => { },
-  onToggleLocked: () => { },
-  onToggleVisibility: () => { },
-  onToggleVisibilityAll: () => { },
   segmentationConfig: {
     initialConfig: {
       fillAlpha: 0.5,
@@ -164,6 +176,23 @@ SegmentationGroupTable.defaultProps = {
     },
     usePercentage: true,
   },
+  showAddSegmentation: false,
+  showAddSegment: false,
+  showDeleteSegment: false,
+  isMinimized: {},
+  onSegmentationAdd: () => { },
+  onSegmentationEdit: () => { },
+  onSegmentationClick: () => { },
+  onSegmentationDelete: () => { },
+  onToggleSegmentationVisibility: () => { },
+  onToggleMinimizeSegmentation: () => { },
+  onSegmentClick: () => { },
+  onSegmentAdd: () => { },
+  onSegmentDelete: () => { },
+  onSegmentEdit: () => { },
+  onSegmentColorClick: () => { },
+  onToggleSegmentVisibility: () => { },
+  onToggleSegmentLock: () => { }, // 新增上锁切换
   setFillAlpha: () => { },
   setFillAlphaInactive: () => { },
   setOutlineWidthActive: () => { },

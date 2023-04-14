@@ -50,7 +50,7 @@ export default function PanelRoiThresholdSegmentation({
 }) {
   const { segmentationService } = servicesManager.services;
 
-  const { t } = useTranslation('PanelSUV');
+  const { t } = useTranslation('PanelROIThreshold');
   const [showConfig, setShowConfig] = useState(false);
   const [labelmapLoading, setLabelmapLoading] = useState(false);
   const [selectedSegmentationId, setSelectedSegmentationId] = useState(null);
@@ -192,10 +192,10 @@ export default function PanelRoiThresholdSegmentation({
                 });
               }}
             >
-              {labelmapLoading ? 'loading ...' : 'New Label'}
+              {labelmapLoading ? t('loading ...') : t('New Label')}
             </Button>
             <Button color="primary" onClick={handleROIThresholding}>
-              Run
+              {t("Run")}
             </Button>
           </div>
           <div
