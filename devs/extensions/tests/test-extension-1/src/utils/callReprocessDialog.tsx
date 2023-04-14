@@ -3,9 +3,9 @@ import { Input, InputTextarea, Dialog, SegmentationGroupTable, Button, Icon } fr
 import api from "../../../../../utils/api"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-function callReprocessDialog(uiDialogService, reProps, callback) {
+function callReprocessDialog(uiDialogService, repProps, callback) {
   const dialogId = 'reprocess-label';
-  const { reScript } = reProps;
+  const {studyUid,seriesUid,reScript } = repProps;
   const onSubmitHandler = ({ action, value }) => {
     switch (action.id) {
       case 'save':
@@ -18,13 +18,16 @@ function callReprocessDialog(uiDialogService, reProps, callback) {
   };
   const UploadReprocess = async (Script) => {
     // var files = modelValue.modelFile;
-    var uploadscript = Script
+    var data={studyUid,
+          seriesUid,
+          script:Script
+    };
     try {
       const response = await toast.promise(
-        api.Reprocess(Script),
+        api.Reprocess(data),
         {
-          pending: '上传中，请稍后……',
-          success: '上传成功！请刷新网页查看。',
+          pending: '上传后处理脚本中，请稍后……',
+          success: '处理成功！',
           error: '上传失败，请稍后再试。'
         },
         {
@@ -32,7 +35,6 @@ function callReprocessDialog(uiDialogService, reProps, callback) {
           theme: "colored",
         }
       );
-      console.log(response.data);
     }
     catch (e) { }
   };

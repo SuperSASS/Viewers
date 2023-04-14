@@ -4,7 +4,7 @@ import { SegmentationGroupTable, Button, Select } from '@ohif/ui';
 import callInputDialog from '../utils/callInputDialog';
 import callModelDialog from '../utils/callModelDialog';
 import callReprocessDialog from '../utils/callReprocessDialog';
-import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType } from "../../../../../utils/api";
+import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType, ReprocessType } from "../../../../../utils/api";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -81,7 +81,7 @@ export default function PanelSegmentation({
       resopnse.data.Result.forEach(item => {
         modelList.push({
           value: item.Id,
-          label: item.Id + ' - ' + item.Name,
+          label: item.Name,
           description: item.Description,
         })
       })
@@ -221,9 +221,19 @@ export default function PanelSegmentation({
     )
   };
   const OnReprocess = () => {
+    const viewportState = ViewportGridService.getState();
+    const displaySetInstanceUID = viewportState.viewports[viewportState.activeViewportIndex].displaySetInstanceUIDs;
+    const displaySet = DisplaySetService.getDisplaySetByUID(displaySetInstanceUID[0]);
+    const studyUid = displaySet.StudyInstanceUID;
+    const seriesUid = displaySet.SeriesInstanceUID;
+    // const instanceUid = displaySet.images[0].SOPInstanceUID;
     callReprocessDialog(
       UIDialogService,
-      { Script: "" },
+      {
+        studyUid,
+        seriesUid,
+        script: ""
+      },
       (model, actionId) => { }
     )
   };

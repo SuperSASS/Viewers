@@ -100,8 +100,15 @@ function callModelDialog(uiDialogService, modelProps, callback) {
               {/* /// *直接添加语句：这直接加的Button */}
               <Button onClick={selectModel} variant="outlined" rounded="full" size="special" className="mr-3 text-lg text-common-light">
                 <Icon name="upload" className="stroke-current w-8 h-8 mr-auto ml-2"></Icon>
-                <div className='mr-2'>上传模型对应的5个文件</div>
+                <div className='mr-2'>上传模型文件</div>
               </Button>
+              <div className='text-primary-light'>eg. :
+                <div>deploy.yaml</div>
+                <div>metainfo.json</div>
+                <div>model.pdiparams</div>
+                <div>model.pdiparams.info</div>
+                <div>model.pdmodel</div>
+              </div>
             </div>
           );
         },

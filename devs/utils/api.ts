@@ -62,9 +62,9 @@ class HttpClient {
   public async Reprocess(data: ReprocessType): Promise<ResponseType> {
     const url = "/User/Model/Segment/Reprocess";
     const headers = {
-      'Content-Type': 'text/plain'
+      'Content-Type': 'multipart/form-data'
     };
-    const response = await this.Client.post(url, data, { headers });
+    const response = await this.Client.post(url, {}, { params: data });
     return response;
   }
   public async DownloadSeg(data: DownloadSegType): Promise<ResponseType> {
@@ -105,6 +105,11 @@ export type DownloadSegType = {
   instanceUid: string
   apifoxResponseId?: string,
 };
-export type ReprocessType = string
+export type ReprocessType =
+  {
+    studyUid: string,
+    seriesUid: string,
+    script: string,
+  };
 export type UploadFileTyoe = FormData
 export type UploadModelType = FormData
