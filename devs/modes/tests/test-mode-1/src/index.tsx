@@ -146,7 +146,7 @@ function modeFactory({ modeConfiguration }) {
             id: layoutTemplates.default,
             props: {
               leftPanels: [leftPanels.measurement],
-              rightPanels: [rightPanels.measure, rightPanels.segment, rightPanels.test],
+              rightPanels: [rightPanels.measure, rightPanels.segment],
               viewports: [
                 {
                   namespace: viewports.cornerstone,

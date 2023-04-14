@@ -4,6 +4,7 @@ import { SegmentationGroupTable, Button, Select } from '@ohif/ui';
 import callInputDialog from '../utils/callInputDialog';
 import callModelDialog from '../utils/callModelDialog';
 import callReprocessDialog from '../utils/callReprocessDialog';
+import callColorDialog from '../utils/callColorDialog';
 import api, { ApplyModelAllType, GetModelsDataType, DownloadSegType, ReprocessType } from "../../../../../utils/api";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -267,31 +268,6 @@ export default function PanelSegmentation({
     return;
   };
 
-  const OnModelUpload = () => {
-    callModelDialog(
-      UIDialogService,
-      { modelName: "", modelDescription: "" },
-      (model, actionId) => { }
-    )
-  };
-  const OnReprocess = () => {
-    const viewportState = ViewportGridService.getState();
-    const displaySetInstanceUID = viewportState.viewports[viewportState.activeViewportIndex].displaySetInstanceUIDs;
-    const displaySet = DisplaySetService.getDisplaySetByUID(displaySetInstanceUID[0]);
-    const studyUid = displaySet.StudyInstanceUID;
-    const seriesUid = displaySet.SeriesInstanceUID;
-    // const instanceUid = displaySet.images[0].SOPInstanceUID;
-    callReprocessDialog(
-      UIDialogService,
-      {
-        studyUid,
-        seriesUid,
-        script: ""
-      },
-      (model, actionId) => { }
-    )
-  };
-
   // 单个Segment删除
   const onSegmentDelete = (segmentationId, segmentIndex) => {
     SegmentationService.removeSegment(
@@ -431,9 +407,19 @@ export default function PanelSegmentation({
 
   // 上传后处理脚本
   const OnReprocess = () => {
+    const viewportState = ViewportGridService.getState();
+    const displaySetInstanceUID = viewportState.viewports[viewportState.activeViewportIndex].displaySetInstanceUIDs;
+    const displaySet = DisplaySetService.getDisplaySetByUID(displaySetInstanceUID[0]);
+    const studyUid = displaySet.StudyInstanceUID;
+    const seriesUid = displaySet.SeriesInstanceUID;
+    // const instanceUid = displaySet.images[0].SOPInstanceUID;
     callReprocessDialog(
       UIDialogService,
-      { Script: "" },
+      {
+        studyUid,
+        seriesUid,
+        script: ""
+      },
       (model, actionId) => { }
     )
   };
