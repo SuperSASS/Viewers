@@ -8,5 +8,9 @@
   "Appreance_Size": "尺寸",
   "Appreance_DisplayInactive": "展示未激活的标签",
   "Inactive Segmentations": "未激活的标签",
-  "Segmentation Appearance": "标签展示设置"
+  "Segmentation Appearance": "标签展示设置",
+  "Rename": "重命名",
+  "Delete": "删除",
+  "Segmentation": "标签组",
+  "Add Segment": "添加标签"
 }

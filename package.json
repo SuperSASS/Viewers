@@ -56,9 +56,14 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.20.13",
-    "@kitware/vtk.js": "26.5.6",
+    "@kitware/vtk.js": "^26.9.14",
     "core-js": "^3.2.1",
-    "react-toastify": "^9.1.2"
+    "cornerstone-core": "^2.6.1",
+    "cornerstone-tools": "^6.0.9",
+    "itk-wasm": "^1.0.0-b.18",
+    "react-color": "^2.19.3",
+    "react-toastify": "^9.1.2",
+    "react-vtkjs-viewport": "^0.14.5"
   },
   "peerDependencies": {
     "react": "17.0.2",

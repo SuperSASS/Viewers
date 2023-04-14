@@ -414,6 +414,8 @@ export default class HangingProtocolService extends PubSubService {
   }
 
   /**
+   * 运行影像读取策略
+   * data来自于
    * Executes the callback function for the custom loading strategy for the images
    * if no strategy is set, the default strategy is used
    */
@@ -1093,7 +1095,7 @@ export default class HangingProtocolService extends PubSubService {
       const reuseDisplaySetUID =
         id &&
         displaySetSelectorMap[
-          `${activeStudyUID}:${id}:${matchedDisplaySetsIndex || 0}`
+        `${activeStudyUID}:${id}:${matchedDisplaySetsIndex || 0}`
         ];
       const viewportDisplaySetMain = this.displaySetMatchDetails.get(id);
 

@@ -178,7 +178,7 @@ export default async function init({
 
   // When a custom image load is performed, update the relevant viewports
   // 一般就指对于VolumeViewport/VolumeViewport3D的Viewport加载数据时，会调用
-  /// 在runImageLoadStrategy()[HangingProtocolService.ts] ← _setVolumeViewport()[CornerStoneViewportService.ts] ← _setDisplaySets()[.] ← setViewportData()[.] ← loadViewportData()[OHIFCornerstoneViewport.tsx]
+  /// 触发时机：runImageLoadStrategy()[HangingProtocolService.ts] ← _setVolumeViewport()[CornerStoneViewportService.ts] ← _setDisplaySets()[.] ← setViewportData()[.] ← loadViewportData()[OHIFCornerstoneViewport.tsx]
   hangingProtocolService.subscribe(
     hangingProtocolService.EVENTS.CUSTOM_IMAGE_LOAD_PERFORMED,
     volumeInputArrayMap => {

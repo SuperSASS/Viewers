@@ -22,7 +22,7 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
         bindings: [{ mouseButton: Enums.MouseBindings.Secondary }],
       },
       {
-        toolName: toolNames.StackScrollMouseWheel, // 滚轮切换Stack
+        toolName: toolNames.StackScrollMouseWheel, // 滚轮切换Stack【这里不用绑定的原因是因为，会在
         bindings: []
       },
     ],
@@ -41,6 +41,8 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
       // 比tmtv多的
       { toolName: toolNames.PlanarFreehandROI },
       { toolName: toolNames.CalibrationLine },
+      // 新增 - 分割工具
+      { toolName: toolNames.Brush }
     ],
     // enabled
     enabled: [
@@ -73,7 +75,7 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
           data,
           eventDetails,
         }),
-    },
+    }
   };
   // 专为mip量身打造的Tool
   const mipTools = {
@@ -97,8 +99,24 @@ function _initToolGroups(extensionManager, toolGroupService, commandsManager) {
     },
   };
 
-  toolGroupService.createToolGroupAndAddTools(toolGroupIds.default, defaultTools, defaultToolsConfig);
-  toolGroupService.createToolGroupAndAddTools(toolGroupIds.mip, mipTools, mipToolsConfig);
+  const defaultToolGroup = toolGroupService.createToolGroupAndAddTools(toolGroupIds.default, defaultTools, defaultToolsConfig);
+  const mipToolGroup = toolGroupService.createToolGroupAndAddTools(toolGroupIds.mip, mipTools, mipToolsConfig);
+
+  // 新增工具实例，即橡皮檫工具
+  const toolInstances = {
+    BrushEraser: {
+      Name: "BrushEraser",
+      Parent: toolNames.Brush,
+      Strategies: "ERASE_INSIDE_CIRCLE",
+    }
+  }
+  defaultToolGroup.addToolInstance(
+    toolInstances.BrushEraser.Name,
+    toolInstances.BrushEraser.Parent,
+    {
+      activeStrategy: toolInstances.BrushEraser.Strategies
+    }
+  )
 }
 
 // 不用像tmtv那个傻的一样传参，就传这三个就行，他穿的参在这三个里面都可以获取

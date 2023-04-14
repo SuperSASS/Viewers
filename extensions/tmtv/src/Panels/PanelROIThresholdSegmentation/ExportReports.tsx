@@ -3,7 +3,7 @@ import { Button, ButtonGroup } from '@ohif/ui';
 import { useTranslation } from 'react-i18next';
 
 function ExportReports({ segmentations, tmtvValue, config, commandsManager }) {
-  const { t } = useTranslation('PanelSUVExport');
+  const { t } = useTranslation('PanelROIThreshold');
 
   return (
     <>

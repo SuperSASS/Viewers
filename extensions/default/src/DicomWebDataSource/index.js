@@ -105,7 +105,7 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
     query: {
       studies: {
         mapParams: mapParams.bind(),
-        search: async function(origParams) {
+        search: async function (origParams) {
           const headers = userAuthenticationService.getAuthorizationHeader();
           if (headers) {
             qidoDicomWebClient.headers = headers;
@@ -130,7 +130,7 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       },
       series: {
         // mapParams: mapParams.bind(),
-        search: async function(studyInstanceUid) {
+        search: async function (studyInstanceUid) {
           const headers = userAuthenticationService.getAuthorizationHeader();
           if (headers) {
             qidoDicomWebClient.headers = headers;
@@ -177,6 +177,7 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       directURL: params => {
         return getDirectURL(wadoRoot, params);
       },
+      // 这个指的是获取指定StudyInstanceUID下的所有Series
       series: {
         metadata: async ({
           StudyInstanceUID,
@@ -196,6 +197,7 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
             );
           }
 
+          // 根据是否懒加载，调用异步或同步（阻塞式）查询SeriesMetadata
           if (enableStudyLazyLoad) {
             return implementation._retrieveSeriesMetadataAsync(
               StudyInstanceUID,
@@ -248,6 +250,10 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
         await wadoDicomWebClient.storeInstances(options);
       },
     },
+    // 获取指定StudyInstanceUID下的所有Series的Metadata，为同步式
+    /// 即要等获取完，得到最终的**所有Series**结合在一起Metadata，存放到下面的data
+    /// 【所有即指：该Study有3个Series，1个90Instance的CT、2个1Instance的SEG，则data.lenth = 92
+    // 副作用：会将获取到的该Study所有的OHIF-Instances-Metadata存到DicomMetadataStore中
     _retrieveSeriesMetadataSync: async (
       StudyInstanceUID,
       filters,
@@ -258,6 +264,8 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       const enableStudyLazyLoad = false;
 
       // data is all SOPInstanceUIDs
+      // data是该Study的所有SOPInstanceUIDs
+      /// 格式：纯Metadata（DICOM格式Metadata），如data[0] = {00080008: {}, 00080012: {}, ...}
       const data = await retrieveStudyMetadata(
         wadoDicomWebClient,
         StudyInstanceUID,
@@ -268,13 +276,15 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       );
 
       // first naturalize the data
+      // 首先归一化（标准化？或者说OHIF化）Metadata
+      /// 格式：OHIF式Metadata，如...[0] = {imageId: '...', Modality: "CT", SOPInstanceUID: "...", ...}
       const naturalizedInstancesMetadata = data.map(naturalizeDataset);
 
-      const seriesSummaryMetadata = {};
-      const instancesPerSeries = {};
+      const seriesSummaryMetadata = {}; // 有关这个series的简介metadata
+      const instancesPerSeries = {}; // 将上面获取转化的OHIF式metadata，按照SeriesUid归类好，相当于每一个Series下具体的Instance-OHIF-Metadata
 
       naturalizedInstancesMetadata.forEach(instance => {
-        if (!seriesSummaryMetadata[instance.SeriesInstanceUID]) {
+        if (!seriesSummaryMetadata[instance.SeriesInstanceUID]) { // 如果这个Instance所属的Series，没有简介metadata，那就创建，以其SeriesUID为索引
           seriesSummaryMetadata[instance.SeriesInstanceUID] = {
             StudyInstanceUID: instance.StudyInstanceUID,
             StudyDescription: instance.StudyDescription,
@@ -292,25 +302,30 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
           instancesPerSeries[instance.SeriesInstanceUID] = [];
         }
 
+        // 获取那个imageId
         const imageId = implementation.getImageIdsForInstance({
           instance,
         });
 
         instance.imageId = imageId;
 
+        // 暂时不明白干嘛的，可能是建立imageId与{Study+Seires+Instance}Uid的关系的？
         metadataProvider.addImageIdToUIDs(imageId, {
           StudyInstanceUID,
           SeriesInstanceUID: instance.SeriesInstanceUID,
           SOPInstanceUID: instance.SOPInstanceUID,
         });
 
-        instancesPerSeries[instance.SeriesInstanceUID].push(instance);
+        instancesPerSeries[instance.SeriesInstanceUID].push(instance); // 按SeriesUid归类
       });
 
       // grab all the series metadata
-      const seriesMetadata = Object.values(seriesSummaryMetadata);
-      DicomMetadataStore.addSeriesMetadata(seriesMetadata, madeInClient);
+      // 存储这个Series的Metadata
+      const seriesMetadata = Object.values(seriesSummaryMetadata); // 会把以SeriesUid为索引的seriesSummaryMetadata，转换为seriesMetadata数组
+      DicomMetadataStore.addSeriesMetadata(seriesMetadata, madeInClient); // 调DicomMetadataStore服务，添加该Sereid的Metadata，参数为OHIF格式Metadata的数组
 
+      // 添加每一个Instance-OHIF-Metadata
+      /// 在这其中会广播DicomMetadataStore服务的INSTANCES_ADDED事件，会导致Mode的defaultRouteInit中订阅该事件的处理函数激活
       Object.keys(instancesPerSeries).forEach(seriesInstanceUID =>
         DicomMetadataStore.addInstances(
           instancesPerSeries[seriesInstanceUID],
@@ -470,6 +485,15 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       });
       return imageIds;
     },
+    /// #+核心代码修改：增加了获取studyMetadata的功能实现
+    retrieveStudyMetadatas: async (StudyInstanceUID) => {
+      return await retrieveStudyMetadata(
+        wadoDicomWebClient,
+        StudyInstanceUID,
+        enableStudyLazyLoad,
+      );
+    }
+    /// #-
   };
 
   if (supportsReject) {

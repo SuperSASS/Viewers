@@ -45,7 +45,7 @@
     ".netlify": true,
     ".scripts": true,
     "**/.webpack": true,
-    "**/node_modules": true,
+    // "**/node_modules": true,
     "**/coverage": true,
     ".[!v]*": true,
     "*.md": true,
@@ -54,5 +54,5 @@
     "Dockerfile": true,
     "LICENSE": true,
     "yarn.lock": true,
-  }
+  },
 }

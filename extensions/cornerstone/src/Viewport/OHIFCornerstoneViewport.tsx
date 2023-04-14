@@ -115,9 +115,9 @@ const OHIFCornerstoneViewport = React.memo(props => {
   const [scrollbarHeight, setScrollbarHeight] = useState('100px');
   const [{ isCineEnabled, cines }, cineService] = useCine();
   const [{ activeViewportIndex }] = useViewportGrid();
-  const [enabledVPElement, setEnabledVPElement] = useState(null);
+  const [enabledVPElement, setEnabledVPElement] = useState(null); // 这个也只跟Cine有关
 
-  const elementRef = useRef();
+  const elementRef = useRef(); // 这个才是最终展示的影像数据
 
   const {
     measurementService,
@@ -131,6 +131,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
     stateSyncService,
   } = servicesManager.services;
 
+  //#region 应该都是有关Cines播放的
   const cineHandler = () => {
     if (!cines || !cines[viewportIndex] || !enabledVPElement) {
       return;
@@ -197,14 +198,17 @@ const OHIFCornerstoneViewport = React.memo(props => {
       ],
     });
   };
+  //#endregion
 
   // useCallback for scroll bar height calculation
+  // （无需认识）与右侧滑动条有关的
   const setImageScrollBarHeight = useCallback(() => {
     const scrollbarHeight = `${elementRef.current.clientHeight - 20}px`;
     setScrollbarHeight(scrollbarHeight);
   }, [elementRef]);
 
   // useCallback for onResize
+  // （应该不需要）当尺寸变化时调用，重设尺寸
   const onResize = useCallback(() => {
     if (elementRef.current) {
       cornerstoneViewportService.resize();
@@ -212,6 +216,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
     }
   }, [elementRef]);
 
+  // （应该不需要）存储展示方式的(LUT, Position)
   const storePresentation = () => {
     const currentPresentation = cornerstoneViewportService.getPresentation(
       viewportIndex
@@ -239,6 +244,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
     stateSyncService.store(storeState);
   };
 
+  // （应该不需要）清理服务的：toolGroupService、syncGroupService（这个只是删除同步，而没有删除同步的数据）
   const cleanUpServices = useCallback(() => {
     const viewportInfo = cornerstoneViewportService.getViewportInfoByIndex(
       viewportIndex
@@ -261,6 +267,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
     );
   }, [viewportIndex, viewportOptions.viewportId]);
 
+  // （应该不需要）当这个Viewport启动(.enable)后调用，主要的副作用有：注册toolGroupService、toolGroupService
   const elementEnabledHandler = useCallback(
     evt => {
       // check this is this element reference and return early if doesn't match
@@ -300,6 +307,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
     [viewportIndex, onElementEnabled, toolGroupService]
   );
 
+  // （应该不需要，但为了enableViewport需要加一个ref和调这个）应该是把Viewport和HTML DOM元素(element)建立关联
   // disable the element upon unmounting
   useEffect(() => {
     cornerstoneViewportService.enableViewport(
@@ -315,14 +323,15 @@ const OHIFCornerstoneViewport = React.memo(props => {
 
     setImageScrollBarHeight();
 
+    // 清除副作用
     return () => {
-      storePresentation();
+      storePresentation(); // 这里还要先保存Presentation，调用stateSyncService
 
-      cleanUpServices();
+      cleanUpServices(); // 然后紧接着清除服务的连接（但没清楚数据）
 
-      cornerstoneViewportService.disableElement(viewportIndex);
+      cornerstoneViewportService.disableElement(viewportIndex); // 断开Viewport与Element的连接
 
-      if (onElementDisabled) {
+      if (onElementDisabled) { // 如果调组件传了该回调，调
         const viewportInfo = cornerstoneViewportService.getViewportInfoByIndex(
           viewportIndex
         );
@@ -330,13 +339,18 @@ const OHIFCornerstoneViewport = React.memo(props => {
         onElementDisabled(viewportInfo);
       }
 
-      eventTarget.removeEventListener(
+      eventTarget.removeEventListener( // 移除ELEMENT_ENABLED监听
         Enums.Events.ELEMENT_ENABLED,
         elementEnabledHandler
       );
     };
   }, []);
 
+  // （应该不需要）订阅DisplaySet服务的DISPLAY_SET_SERIES_METADATA_INVALIDATED(Metadata失效（或说更新）)
+  // 【根本不知道什么时候会调用……
+  // 如果元数据发生变化，需要重新渲染显示集，使其在视口中生效。
+  // 但因为在加载中处理了缩放（？），需要从缓存中删除旧的Volume，并让Viewport重新添加它，这才能使用新的元数据
+  // 否则视口将使用缓存的Volume，而新的Metadata（以及对应的Volume）将不会被使用
   // subscribe to displaySet metadata invalidation (updates)
   // Currently, if the metadata changes we need to re-render the display set
   // for it to take effect in the viewport. As we deal with scaling in the loading,
@@ -349,12 +363,14 @@ const OHIFCornerstoneViewport = React.memo(props => {
     const { unsubscribe } = displaySetService.subscribe(
       displaySetService.EVENTS.DISPLAY_SET_SERIES_METADATA_INVALIDATED,
       async invalidatedDisplaySetInstanceUID => {
+        // 获得新的ViewportInfo，其中包含新的ViewportData
         const viewportInfo = cornerstoneViewportService.getViewportInfoByIndex(
           viewportIndex
         );
 
         if (viewportInfo.hasDisplaySet(invalidatedDisplaySetInstanceUID)) {
           const viewportData = viewportInfo.getViewportData();
+          // 调用cornerstoneCacheService的“失效ViewportData（实际上是更新新的ViewportData）函数”
           const newViewportData = await cornerstoneCacheService.invalidateViewportData(
             viewportData,
             invalidatedDisplaySetInstanceUID,
@@ -363,6 +379,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
           );
 
           const keepCamera = true;
+          // 更新新的ViewportData
           cornerstoneViewportService.updateViewport(
             viewportIndex,
             newViewportData,
@@ -376,13 +393,17 @@ const OHIFCornerstoneViewport = React.memo(props => {
     };
   }, [viewportIndex]);
 
+  // ⭐这个应该是管理Viewport数据加载的
+  // 在创建Viewport组建后，就会执行这里的东西，然后加载ViewportData！
   useEffect(() => {
+    // 没给ViewportType，则默认定为STACK
     // handle the default viewportType to be stack
     if (!viewportOptions.viewportType) {
       viewportOptions.viewportType = STACK;
     }
 
     const loadViewportData = async () => {
+      // 在这里只是创建了ViewportData，但对于非SEG类型，还没有读取像素数据
       const viewportData = await cornerstoneCacheService.createViewportData(
         displaySets,
         viewportOptions,
@@ -404,6 +425,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
           lutPresentationStore[presentationIds?.lutPresentationId],
       };
 
+      // 这里面会运行具体的挂片协议的加载策略，从而进行像素数据的异步逐渐读取
       cornerstoneViewportService.setViewportData(
         viewportIndex,
         viewportData,
@@ -416,6 +438,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
     loadViewportData();
   }, [viewportOptions, displaySets, dataSource]);
 
+  // （用不到）有关Measurement跳转的
   /**
    * There are two scenarios for jump to click
    * 1. Current viewports contain the displaySet that the annotation was drawn on
@@ -500,6 +523,7 @@ const OHIFCornerstoneViewport = React.memo(props => {
   );
 }, areEqual);
 
+// （用不到）订阅measurementService的JUMP_TO_MEASUREMENT事件
 function _subscribeToJumpToMeasurementEvents(
   measurementService,
   displaySetService,
@@ -535,6 +559,7 @@ function _subscribeToJumpToMeasurementEvents(
   return unsubscribe;
 }
 
+// （用不到）检查是否存在在队列中的"JumpToMeasurement"Event
 // Check if there is a queued jumpToMeasurement event
 function _checkForCachedJumpToMeasurementEvents(
   measurementService,
@@ -573,6 +598,7 @@ function _checkForCachedJumpToMeasurementEvents(
   }
 }
 
+// （用不到）应该是点击Measurement的时候跳转到对应位置
 function _jumpToMeasurement(
   measurement,
   targetElementRef,

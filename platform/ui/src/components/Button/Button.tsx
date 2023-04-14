@@ -129,7 +129,7 @@ const borderClasses = {
 };
 
 const sizeClasses = {
-  special: "text-sm min-w-md",
+  special: "text-sm min-w-md", // 这个好像是自己加的
   small: 'py-2 px-2 text-sm min-w-md',
   medium: 'py-2 px-2 text-lg min-w-md',
   large: 'py-2 px-6 text-xl min-w-md',
@@ -224,7 +224,7 @@ Button.propTypes = {
   /** Callback to be called when the button is clicked  */
   onClick: PropTypes.func.isRequired,
   /** Button size  */
-  size: PropTypes.oneOf(['small', 'medium', 'large', 'initial', 'inherit']),
+  size: PropTypes.oneOf(['special', 'small', 'medium', 'large', 'initial']),
   /** Button corner roundness  */
   rounded: PropTypes.oneOf(['none', 'small', 'medium', 'large', 'full']),
   variant: PropTypes.oneOf(['text', 'outlined', 'contained', 'disabled']),

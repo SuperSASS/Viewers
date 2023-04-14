@@ -39,7 +39,7 @@ function defaultRouteInit(
   } = DicomMetadataStore.subscribe(
     DicomMetadataStore.EVENTS.INSTANCES_ADDED,
     function ({ StudyInstanceUID, SeriesInstanceUID, madeInClient = false }) {
-      const seriesMetadata = DicomMetadataStore.getSeries(
+      const seriesMetadata = DicomMetadataStore.getSeries( // 因为在retrieve的时候，会把OHIF-Instance-Metadata存到这个服务里，所以这直接取
         StudyInstanceUID,
         SeriesInstanceUID
       );
@@ -50,7 +50,7 @@ function defaultRouteInit(
 
   unsubscriptions.push(instanceAddedUnsubscribe);
 
-  // 查询获得该UID的series
+  // 查询获得该StudyUID的series
   const allRetrieves = studyInstanceUIDs.map(StudyInstanceUID =>
     dataSource.retrieve.series.metadata({
       StudyInstanceUID,

@@ -1,6 +1,6 @@
 import React from "react";
-import PanelSegmentation from "../panels/PanelSegmentation";
-import PanelTest from "../panels/PanelTest";
+import PanelSegmentation from "../Panels/PanelSegmentation";
+import PanelTest from "../Panels/PanelTest";
 
 function getPanelModule({
   commandsManager,

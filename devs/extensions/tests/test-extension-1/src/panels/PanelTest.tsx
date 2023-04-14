@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { SegmentationGroupTable, Button } from "@ohif/ui";
-import api, { ApplyModelAllType } from "../utils/api";
+import api, { ApplyModelAllType } from "../Utils/api";
 
 import PropTypes from "prop-types";
 

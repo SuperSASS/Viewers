@@ -39,8 +39,8 @@ const SegmentationItem = ({
       onMouseLeave={onMouseLeave}
       onClick={onClickHandler}
       role="button"
-      tabIndex="0"
-      data-cy={'measurement-item'}
+      tabIndex={0}
+      data-cy={'segmentation-item'}
     >
       <div
         className={classnames(

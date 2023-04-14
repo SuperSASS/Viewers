@@ -21,6 +21,9 @@ function create({
   deleteStudyMetadataPromise,
   getImageIdsForDisplaySet,
   getImageIdsForInstance,
+  /// #+核心代码修改：对于WebApiDataSource增加了一个方法
+  retrieveStudyMetadatas,
+  /// #-
 }) {
   const defaultQuery = {
     studies: {
@@ -37,7 +40,7 @@ function create({
        * @param {number} params.resultsPerPage
        */
       mapParams: params => params,
-      requestResults: () => {},
+      requestResults: () => { },
       processResults: results => results,
     },
     series: {},
@@ -66,6 +69,9 @@ function create({
     deleteStudyMetadataPromise,
     getImageIdsForDisplaySet,
     getImageIdsForInstance,
+    /// #+核心代码修改：同上
+    retrieveStudyMetadatas,
+    /// #-
   };
 }
 

@@ -4,7 +4,6 @@ const toolGroupIds = {
   mip: "mipToolGroup",
 }
 
-
 // TODO: torn, can either bake this here; or have to create a whole new button type
 // Only ways that you can pass in a custom React component for render :l
 import {
@@ -85,6 +84,73 @@ function _createSetToolActiveCommands(toolName) {
 }
 
 const toolbarButtons = [
+  // 缩放
+  {
+    id: 'Zoom',
+    type: 'ohif.radioGroup',
+    props: {
+      type: 'tool',
+      icon: 'tool-zoom',
+      label: 'Zoom',
+      commands: _createSetToolActiveCommands('Zoom'),
+    },
+  },
+  // 平移
+  {
+    id: 'Pan',
+    type: 'ohif.radioGroup',
+    props: {
+      type: 'tool',
+      icon: 'tool-move',
+      label: 'Pan',
+      commands: _createSetToolActiveCommands('Pan'),
+    },
+  },
+  // 窗宽窗位 组别
+  {
+    id: 'WindowLevel',
+    type: 'ohif.splitButton',
+    props: {
+      groupId: 'WindowLevel',
+      primary: _createToolButton(
+        'WindowLevel',
+        'tool-window-level',
+        'Window Level',
+        [
+          {
+            commandName: 'setToolActive',
+            commandOptions: {
+              toolName: 'WindowLevel',
+            },
+            context: 'CORNERSTONE',
+          },
+        ],
+        'Window Level'
+      ),
+      secondary: {
+        icon: 'chevron-down',
+        label: 'W/L Manual',
+        isActive: true,
+        tooltip: 'W/L Presets',
+      },
+      isAction: true, // ?
+      renderer: WindowLevelMenuItem,
+      items: [
+        _createWwwcPreset(1, '软组织', '400 / 40'),
+        _createWwwcPreset(2, '肺', '1500 / -600'),
+        _createWwwcPreset(3, '肝脏', '150 / 90'),
+        _createWwwcPreset(4, '骨', '2500 / 480'),
+        _createWwwcPreset(5, '大脑', '80 / 40'),
+      ],
+    },
+  },
+  // 分割线
+  {
+    id: "divider",
+    type: "ohif.divider",
+    props: {
+    }
+  },
   // 测量 组别
   {
     id: 'MeasurementTools',
@@ -120,7 +186,7 @@ const toolbarButtons = [
         icon: 'chevron-down',
         label: '',
         isActive: true,
-        tooltip: 'More Measure Tools',
+        tooltip: '更多测量工具',
       },
       items: [
         _createToolButton(
@@ -219,64 +285,66 @@ const toolbarButtons = [
       ],
     },
   },
-  // 缩放
+  // 分割 组别
   {
-    id: 'Zoom',
-    type: 'ohif.radioGroup',
-    props: {
-      type: 'tool',
-      icon: 'tool-zoom',
-      label: 'Zoom',
-      commands: _createSetToolActiveCommands('Zoom'),
-    },
-  },
-  // 窗宽窗位 组别
-  {
-    id: 'WindowLevel',
+    id: 'SegmentationTools',
     type: 'ohif.splitButton',
     props: {
-      groupId: 'WindowLevel',
+      groupId: 'SegmentationTools',
+      isRadio: true, // 是顶替型组别
       primary: _createToolButton(
-        'WindowLevel',
-        'tool-window-level',
-        'Window Level',
-        [
+        'Brush', // id
+        'tool-brush', // icon
+        '笔刷', // label
+        [ // command
           {
             commandName: 'setToolActive',
             commandOptions: {
-              toolName: 'WindowLevel',
+              toolName: 'Brush',
             },
             context: 'CORNERSTONE',
           },
         ],
-        'Window Level'
+        'Brush' // uiType
       ),
       secondary: {
         icon: 'chevron-down',
-        label: 'W/L Manual',
+        label: '',
         isActive: true,
-        tooltip: 'W/L Presets',
+        tooltip: '更多分割工具',
       },
-      isAction: true, // ?
-      renderer: WindowLevelMenuItem,
       items: [
-        _createWwwcPreset(1, '软组织', '400 / 40'),
-        _createWwwcPreset(2, '肺', '1500 / -600'),
-        _createWwwcPreset(3, '肝脏', '150 / 90'),
-        _createWwwcPreset(4, '骨', '2500 / 480'),
-        _createWwwcPreset(5, '大脑', '80 / 40'),
+        _createToolButton(
+          'Brush', // id
+          'tool-brush', // icon
+          '笔刷', // label
+          [ // command
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'Brush',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'Brush' // uiType
+        ),
+        _createToolButton(
+          'BrushEraser', // id
+          'tool-eraser', // icon
+          '橡皮檫', // label
+          [ // command
+            {
+              commandName: 'setToolActive',
+              commandOptions: {
+                toolName: 'BrushEraser',
+              },
+              context: 'CORNERSTONE',
+            },
+          ],
+          'BrushEraser' // uiType
+        ),
       ],
-    },
-  },
-  // 平移
-  {
-    id: 'Pan',
-    type: 'ohif.radioGroup',
-    props: {
-      type: 'tool',
-      icon: 'tool-move',
-      label: 'Pan',
-      commands: _createSetToolActiveCommands('Pan'),
     },
   },
   // 截图

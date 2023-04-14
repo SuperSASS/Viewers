@@ -6,6 +6,8 @@ import classnames from 'classnames';
 import Icon from '../Icon';
 import IconButton from '../IconButton';
 
+import { useTranslation } from 'react-i18next';
+
 const AddNewSegmentRow = ({
   id,
   onConfigChange,
@@ -14,13 +16,15 @@ const AddNewSegmentRow = ({
   isVisible,
   showAddSegment,
 }) => {
+  const { t } = useTranslation('PanelSegmentation');
+
   return (
     <div>
       <div className="flex items-center pl-[29px] bg-black text-primary-active hover:opacity-80 cursor-pointer text-[12px] py-1">
         {showAddSegment && (
           <div className="flex items-center" onClick={() => onSegmentAdd(id)}>
             <Icon name="row-add" className="w-5 h-5" />
-            <div className="">Add Segment</div>
+            <div className="">{t("Add Segment") as String}</div>
           </div>
         )}
         <div className="flex-grow" />
@@ -55,6 +59,7 @@ const SegmentGroupHeader = ({
   onSegmentationEdit,
   onSegmentationDelete,
 }) => {
+  const { t } = useTranslation('PanelSegmentation');
   return (
     <div
       className={classnames(
@@ -82,7 +87,7 @@ const SegmentGroupHeader = ({
           }
         )}
       />
-      <span className="text-white ">{label.toUpperCase()}</span>
+      <span className="text-white ">{t(label).toUpperCase()}</span>
       <div className="flex-grow" />
       <span className="text-white ">{segmentCount}</span>
       <div
@@ -95,13 +100,13 @@ const SegmentGroupHeader = ({
           showDropdownIcon={false}
           list={[
             {
-              title: 'Rename',
+              title: t('Rename'),
               onClick: () => {
                 onSegmentationEdit(id);
               },
             },
             {
-              title: 'Delete',
+              title: t('Delete'),
               onClick: () => {
                 onSegmentationDelete(id);
               },
@@ -137,9 +142,9 @@ const SegmentationGroup = ({
   activeSegmentIndex,
   onSegmentAdd,
   onSegmentationClick,
-  onClickSegmentColor,
   onSegmentationEdit,
   onToggleSegmentVisibility,
+  onToggleSegmentLock, // 新增标签上锁切换
   onToggleSegmentationVisibility,
   onSegmentDelete,
   showSegmentDelete,
@@ -184,6 +189,7 @@ const SegmentationGroup = ({
                   label,
                   isVisible,
                   isLocked,
+                  displayText
                 } = segment;
                 return (
                   <div className="mb-[1px]" key={segmentIndex}>
@@ -192,6 +198,7 @@ const SegmentationGroup = ({
                       segmentIndex={segmentIndex}
                       label={label}
                       color={color}
+                      displayText={displayText}
                       isActive={activeSegmentIndex === segmentIndex}
                       isLocked={isLocked}
                       isVisible={isVisible}
@@ -201,6 +208,7 @@ const SegmentationGroup = ({
                       showSegmentDelete={showSegmentDelete}
                       onColor={onSegmentColorClick}
                       onToggleVisibility={onToggleSegmentVisibility}
+                      onToggleLocked={onToggleSegmentLock}
                     />
                   </div>
                 );

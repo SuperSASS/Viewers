@@ -6,6 +6,7 @@ import { Icon } from '@ohif/ui';
 const SegmentItem = ({
   segmentIndex,
   segmentationId,
+  displayText, // 新增属性
   label,
   isActive,
   isVisible,
@@ -17,7 +18,7 @@ const SegmentItem = ({
   onDelete,
   onColor,
   onToggleVisibility,
-  onToggleLocked,
+  onToggleLocked, // 利用起来！
 }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isSegmentIndexHovering, setIsSegmentIndexHovering] = useState(false);
@@ -48,6 +49,7 @@ const SegmentItem = ({
       tabIndex={0}
       data-cy={'segment-item'}
     >
+      {/* 前面的编号 */}
       <div
         className={classnames(
           'w-[27px] flex items-center justify-center border-r border-r-black text-[12px]',
@@ -80,7 +82,7 @@ const SegmentItem = ({
       </div>
       <div
         className={classnames(
-          'flex items-center justify-between w-full pl-2 py-1 text-white border-r border-r-black relative ',
+          'flex flex-col justify-between w-full pl-2 py-1 text-white border-r border-r-black relative ',
           {
             'bg-primary-dark text-primary-light': isActive,
             'bg-primary-dark text-aqua-pale': !isActive && isVisible,
@@ -88,72 +90,102 @@ const SegmentItem = ({
           }
         )}
       >
-        <div className={classnames('flex items-baseline gap-2')}>
-          <div
-            className={classnames('shrink-0 w-[8px] h-[8px] rounded-full')}
-            style={{ backgroundColor: cssColor }}
-            onClick={e => {
-              e.stopPropagation();
-              onColor(segmentationId, segmentIndex);
-            }}
-          />
-          <div className="">{label}</div>
-        </div>
-        {/* with faded background */}
-        <div className="absolute right-0 bg-black/15 rounded-lg pr-[7px]">
-          {!isVisible && !isHovering && (
-            <div>
-              <Icon
-                name="row-hidden"
-                className={classnames('w-5 h-5 text-[#3d5871] ')}
-                onClick={e => {
-                  e.stopPropagation();
-                  onToggleVisibility(segmentationId, segmentIndex);
-                }}
-              />
-            </div>
-          )}
-          {isHovering && (
-            <div className={classnames('flex items-center')}>
-              <Icon
-                name="row-edit"
-                className={classnames('w-5 h-5', {
-                  'text-white': isLocked,
-                  'text-primary-light': !isLocked,
-                })}
-                onClick={e => {
-                  e.stopPropagation();
-                  onEdit(segmentationId, segmentIndex);
-                }}
-              />
-              {isVisible ? (
+        <div className="flex w-full mb-1 ml-2">
+          <div className={classnames('flex items-baseline gap-2')}>
+            <div
+              className={classnames('shrink-0 w-[8px] h-[8px] rounded-full')}
+              style={{ backgroundColor: cssColor }}
+              onClick={e => {
+                e.stopPropagation();
+                onColor(segmentationId, segmentIndex);
+              }}
+            />
+            <div className="">{label}</div>
+          </div>
+          {/* with faded background */}
+          <div className="absolute right-0 bg-black/15 rounded-lg pr-[7px]">
+            {/* 不可见，且没悬浮，会提示当前处于不可见状态 */}
+            {!isVisible && !isHovering && (
+              <div>
                 <Icon
-                  name="row-hide"
+                  name="row-hidden"
+                  className={classnames('w-5 h-5 text-[#3d5871] ')}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onToggleVisibility(segmentationId, segmentIndex);
+                  }}
+                />
+              </div>
+            )}
+            {isHovering && (
+              <div className={classnames('flex items-center')}>
+                <Icon
+                  name="row-edit"
                   className={classnames('w-5 h-5', {
                     'text-white': isLocked,
                     'text-primary-light': !isLocked,
                   })}
                   onClick={e => {
                     e.stopPropagation();
-                    onToggleVisibility(segmentationId, segmentIndex);
+                    onEdit(segmentationId, segmentIndex);
                   }}
                 />
-              ) : (
-                <Icon
-                  name="row-unhide"
-                  className={classnames('w-5 h-5', {
+                {/* 新增锁定标签切换 */}
+                {onToggleLocked ? (
+                  <Icon
+                    name={isLocked ? 'lock' : 'unlock'}
+                    className={classnames('w-5 h-5', "text-primary-white"/*{
                     'text-white': isLocked,
                     'text-primary-light': !isLocked,
-                  })}
-                  onClick={e => {
-                    e.stopPropagation();
-                    onToggleVisibility(segmentationId, segmentIndex);
-                  }}
-                />
-              )}
-            </div>
-          )}
+                  } 就离谱，只有这个Icon会受到影响，其他两个不变！*/)}
+                    onClick={e => {
+                      // stopPropagation needed to avoid disable the current active item
+                      e.stopPropagation();
+                      onToggleLocked(segmentationId, segmentIndex);
+                    }}
+                  />
+                ) : null}
+                {isVisible ? (
+                  <Icon
+                    name="row-hide"
+                    className={classnames('w-5 h-5', {
+                      'text-white': isLocked,
+                      'text-primary-light': !isLocked,
+                    })}
+                    onClick={e => {
+                      e.stopPropagation();
+                      onToggleVisibility(segmentationId, segmentIndex);
+                    }}
+                  />
+                ) : (
+                  <Icon
+                    name="row-unhide"
+                    className={classnames('w-5 h-5', {
+                      'text-white': isLocked,
+                      'text-primary-light': !isLocked,
+                    })}
+                    onClick={e => {
+                      e.stopPropagation();
+                      onToggleVisibility(segmentationId, segmentIndex);
+                    }}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </div>
+        {displayText && (
+          <div className="ml-3">
+            {displayText.map(line => (
+              <span
+                key={line}
+                className="pl-2 text-base text-white border-l border-primary-light"
+              >
+                {line}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       {/* <div className="relative flex flex-col w-full border-t border-t-black">
         <div className="fl`ex items-center mb-1 ml-2">
@@ -225,6 +257,7 @@ SegmentItem.propTypes = {
   label: PropTypes.string,
   // color as array
   color: PropTypes.array,
+  displayText: PropTypes.string,
   isActive: PropTypes.bool.isRequired,
   isVisible: PropTypes.bool.isRequired,
   isLocked: PropTypes.bool,

@@ -1,3 +1,5 @@
+// 这个应该是把标签混合到原本的影像(ReferenceSeriesInstance)中显示的（而不是在这里打开SEG文件，用SEG的Viewport）
+// 返回True或False，代表成功与否
 async function _hydrateSEGDisplaySet({
   segDisplaySet,
   viewportIndex,

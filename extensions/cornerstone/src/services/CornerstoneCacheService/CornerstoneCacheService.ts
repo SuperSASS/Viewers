@@ -48,6 +48,8 @@ class CornerstoneCacheService {
     // that are about to be displayed are referenced in a segmentation
     // as a reference volume, if so, we should hang a volume viewport
     // instead of a stack viewport
+    // 在当前的segmentations里检查是否有被referenced的displaySet要被展示
+    // 但刚开始可能标签还没加载出来，这里为0个
     if (this._shouldRenderSegmentation(displaySets)) {
       viewportType = 'volume';
 
@@ -226,17 +228,19 @@ class CornerstoneCacheService {
   private _shouldRenderSegmentation(displaySets) {
     const { segmentationService } = this.servicesManager.services;
 
+    // 将传来的displaySets转换为viewport的DisplaySetUID（格式为`127d3cf9-293c-...`）
     const viewportDisplaySetInstanceUIDs = displaySets.map(
       ({ displaySetInstanceUID }) => displaySetInstanceUID
     );
 
     // check inside segmentations if any of them are referencing the displaySets
     // that are about to be displayed
+    // 在当前的segmentations里检查是否有被referenced的displaySet要被展示
+    // 但刚开始可能标签还没加载出来，这里为0个
     const segmentations = segmentationService.getSegmentations();
 
     for (const segmentation of segmentations) {
       const segDisplaySetInstanceUID = segmentation.displaySetInstanceUID;
-
       const shouldDisplaySeg = segmentationService.shouldRenderSegmentation(
         viewportDisplaySetInstanceUIDs,
         segDisplaySetInstanceUID

@@ -411,6 +411,7 @@ ViewerViewportGrid.defaultProps = {
   viewportComponents: [],
 };
 
+// 得到当前displaySet可以呈现的Viewport【按顺序查找
 function _getViewportComponent(
   displaySets,
   viewportComponents,
