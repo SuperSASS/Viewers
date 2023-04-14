@@ -84,6 +84,73 @@ function _createSetToolActiveCommands(toolName) {
 }
 
 const toolbarButtons = [
+  // 缩放
+  {
+    id: 'Zoom',
+    type: 'ohif.radioGroup',
+    props: {
+      type: 'tool',
+      icon: 'tool-zoom',
+      label: 'Zoom',
+      commands: _createSetToolActiveCommands('Zoom'),
+    },
+  },
+  // 平移
+  {
+    id: 'Pan',
+    type: 'ohif.radioGroup',
+    props: {
+      type: 'tool',
+      icon: 'tool-move',
+      label: 'Pan',
+      commands: _createSetToolActiveCommands('Pan'),
+    },
+  },
+  // 窗宽窗位 组别
+  {
+    id: 'WindowLevel',
+    type: 'ohif.splitButton',
+    props: {
+      groupId: 'WindowLevel',
+      primary: _createToolButton(
+        'WindowLevel',
+        'tool-window-level',
+        'Window Level',
+        [
+          {
+            commandName: 'setToolActive',
+            commandOptions: {
+              toolName: 'WindowLevel',
+            },
+            context: 'CORNERSTONE',
+          },
+        ],
+        'Window Level'
+      ),
+      secondary: {
+        icon: 'chevron-down',
+        label: 'W/L Manual',
+        isActive: true,
+        tooltip: 'W/L Presets',
+      },
+      isAction: true, // ?
+      renderer: WindowLevelMenuItem,
+      items: [
+        _createWwwcPreset(1, '软组织', '400 / 40'),
+        _createWwwcPreset(2, '肺', '1500 / -600'),
+        _createWwwcPreset(3, '肝脏', '150 / 90'),
+        _createWwwcPreset(4, '骨', '2500 / 480'),
+        _createWwwcPreset(5, '大脑', '80 / 40'),
+      ],
+    },
+  },
+  // 分割线
+  {
+    id: "divider",
+    type: "ohif.divider",
+    props: {
+    }
+  },
   // 测量 组别
   {
     id: 'MeasurementTools',
@@ -119,7 +186,7 @@ const toolbarButtons = [
         icon: 'chevron-down',
         label: '',
         isActive: true,
-        tooltip: 'More Measure Tools',
+        tooltip: '更多测量工具',
       },
       items: [
         _createToolButton(
@@ -227,7 +294,7 @@ const toolbarButtons = [
       isRadio: true, // 是顶替型组别
       primary: _createToolButton(
         'Brush', // id
-        'tool-magnify', // icon
+        'tool-brush', // icon
         '笔刷', // label
         [ // command
           {
@@ -249,7 +316,7 @@ const toolbarButtons = [
       items: [
         _createToolButton(
           'Brush', // id
-          'tool-magnify', // icon
+          'tool-brush', // icon
           '笔刷', // label
           [ // command
             {
@@ -264,7 +331,7 @@ const toolbarButtons = [
         ),
         _createToolButton(
           'BrushEraser', // id
-          'arrow-down', // icon
+          'tool-eraser', // icon
           '橡皮檫', // label
           [ // command
             {
@@ -278,66 +345,6 @@ const toolbarButtons = [
           'BrushEraser' // uiType
         ),
       ],
-    },
-  },
-  // 缩放
-  {
-    id: 'Zoom',
-    type: 'ohif.radioGroup',
-    props: {
-      type: 'tool',
-      icon: 'tool-zoom',
-      label: 'Zoom',
-      commands: _createSetToolActiveCommands('Zoom'),
-    },
-  },
-  // 窗宽窗位 组别
-  {
-    id: 'WindowLevel',
-    type: 'ohif.splitButton',
-    props: {
-      groupId: 'WindowLevel',
-      primary: _createToolButton(
-        'WindowLevel',
-        'tool-window-level',
-        'Window Level',
-        [
-          {
-            commandName: 'setToolActive',
-            commandOptions: {
-              toolName: 'WindowLevel',
-            },
-            context: 'CORNERSTONE',
-          },
-        ],
-        'Window Level'
-      ),
-      secondary: {
-        icon: 'chevron-down',
-        label: 'W/L Manual',
-        isActive: true,
-        tooltip: 'W/L Presets',
-      },
-      isAction: true, // ?
-      renderer: WindowLevelMenuItem,
-      items: [
-        _createWwwcPreset(1, '软组织', '400 / 40'),
-        _createWwwcPreset(2, '肺', '1500 / -600'),
-        _createWwwcPreset(3, '肝脏', '150 / 90'),
-        _createWwwcPreset(4, '骨', '2500 / 480'),
-        _createWwwcPreset(5, '大脑', '80 / 40'),
-      ],
-    },
-  },
-  // 平移
-  {
-    id: 'Pan',
-    type: 'ohif.radioGroup',
-    props: {
-      type: 'tool',
-      icon: 'tool-move',
-      label: 'Pan',
-      commands: _createSetToolActiveCommands('Pan'),
     },
   },
   // 截图

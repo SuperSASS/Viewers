@@ -144,14 +144,14 @@ const IconButton = ({
       data-tool={rest['data-tool']}
     >
       {React.cloneElement(children, {
-        className: classnames(iconSizeClasses[size], 'fill-current'),
+        className: classnames(iconSizeClasses[size]),
       })}
     </button>
   );
 };
 
 IconButton.defaultProps = {
-  onClick: () => {},
+  onClick: () => { },
   color: 'default',
   disabled: false,
   fullWidth: false,

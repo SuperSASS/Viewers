@@ -121,6 +121,8 @@ import oldStop from './../../assets/icons/old-stop.svg';
 
 /** Others */
 import upload from './../../assets/icons/upload.svg';
+import brush from './../../assets/icons/tool-brush.svg';
+import eraser from './../../assets/icons/tool-eraser.svg';
 
 const ICONS = {
   'arrow-down': arrowDown,
@@ -244,6 +246,8 @@ const ICONS = {
 
   /** Others */
   'upload': upload,
+  'tool-brush': brush,
+  'tool-eraser': eraser,
 };
 
 function addIcon(iconName, iconSVG) {
